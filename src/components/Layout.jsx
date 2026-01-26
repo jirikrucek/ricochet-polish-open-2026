@@ -100,9 +100,7 @@ const Layout = () => {
                     <Outlet />
                 </div>
 
-                <footer className="app-footer">
-                    {t('common.footer', { year: currentYear })}
-                </footer>
+
             </main>
 
             {/* Mobile Bottom Navigation */}
