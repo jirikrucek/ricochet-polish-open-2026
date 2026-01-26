@@ -217,6 +217,7 @@
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
 }
 
 .players-table th {
@@ -371,4 +372,18 @@
         justify-content: center;
         width: 100%;
     }
+}
+
+.player-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    overflow: hidden;
+    flex-shrink: 0;
 }

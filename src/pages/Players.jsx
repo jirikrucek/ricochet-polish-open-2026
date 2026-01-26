@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePlayers } from '../hooks/usePlayers';
-import { Search, Plus, Edit2, Trash2, X, Upload, Check } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, X, Upload, Check, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { EUROPEAN_COUNTRIES, getCountryCode } from '../constants/countries';
 import './Players.css';
@@ -401,6 +401,7 @@ const Players = () => {
                 <table className="players-table">
                     <thead>
                         <tr>
+                            <th style={{ width: '60px', textAlign: 'center' }}>{t('players.headers.photo')}</th>
                             <th>{t('players.headers.fullName')}</th>
                             <th>{t('players.headers.country')}</th>
                             <th>{t('players.headers.elo')}</th>
@@ -411,6 +412,15 @@ const Players = () => {
                         {filteredPlayers.length > 0 ? (
                             filteredPlayers.map(player => (
                                 <tr key={player.id}>
+                                    <td>
+                                        <div className="player-avatar">
+                                            {player.photo ? (
+                                                <img src={player.photo} alt={player.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <User size={24} />
+                                            )}
+                                        </div>
+                                    </td>
                                     <td>
                                         <span className="player-name">{player.full_name || player.fullName}</span>
                                     </td>
@@ -456,7 +466,7 @@ const Players = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={isAuthenticated ? "4" : "3"}>
+                                <td colSpan={isAuthenticated ? "5" : "4"}>
                                     <div className="empty-state">
                                         {searchTerm ? t('players.empty.notFound') : t('players.empty.start')}
                                     </div>

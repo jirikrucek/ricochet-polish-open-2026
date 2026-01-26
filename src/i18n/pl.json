@@ -18,8 +18,7 @@
         "edit": "Edytuj",
         "delete": "Usuń",
         "saved": "Zapisano!",
-        "back": "Powrót",
-        "appName": "RICOCHET POLISH OPEN 2026"
+        "back": "Powrót"
     },
     "players": {
         "title": "Baza zawodników",
@@ -29,6 +28,7 @@
         "searchPlaceholder": "Szukaj...",
         "headers": {
             "fullName": "Imię i nazwisko",
+            "photo": "FOTO",
             "country": "Kraj",
             "elo": "ELO"
         },
