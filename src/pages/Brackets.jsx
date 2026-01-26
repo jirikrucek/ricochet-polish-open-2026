@@ -8,17 +8,6 @@ import { ZoomIn, ZoomOut, RotateCcw, Save, RefreshCw, X, Trophy } from 'lucide-r
 import './Brackets.css';
 import { useAuth } from '../hooks/useAuth.tsx';
 
-const SCORE_MODAL_STYLES = {
-    overlay: {
-        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center'
-    },
-    content: {
-        background: 'var(--bg-secondary)', padding: '2rem', borderRadius: '12px', width: '300px',
-        boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)'
-    }
-};
-
 const Brackets = () => {
     const { t } = useTranslation();
     const { players } = usePlayers();
@@ -27,6 +16,7 @@ const Brackets = () => {
     const [scoreA, setScoreA] = useState('');
     const [scoreB, setScoreB] = useState('');
     const { isAuthenticated } = useAuth();
+    const { activeTournamentId, updateTournament } = useTournament();
 
     // Enrich matches for display
     const enrichedMatches = useMemo(() => {
@@ -42,7 +32,7 @@ const Brackets = () => {
         });
     }, [matches, players]);
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
         if (!isAuthenticated) return;
         if (players.length < 2) {
             alert(t('matches.needPlayers'));
@@ -50,7 +40,13 @@ const Brackets = () => {
         }
         if (window.confirm(t('brackets.resetConfirm'))) {
             const newBracket = generateDoubleEliminationBracket(players);
-            saveMatches(newBracket);
+            // Save matches to DB
+            await saveMatches(newBracket);
+
+            // Update tournament status so we know bracket exists
+            if (activeTournamentId) {
+                await updateTournament(activeTournamentId, { status: 'in_progress' });
+            }
         }
     };
 
