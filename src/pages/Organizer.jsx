@@ -18,12 +18,12 @@ const Organizer = () => {
     // Delete State
     const [deletingTournamentId, setDeletingTournamentId] = useState(null);
 
-    const handleCreate = (e) => {
+    const handleCreate = async (e) => {
         e.preventDefault();
         if (!newByName.trim()) return;
-        const id = createTournament(newByName);
-        if (newAddress.trim()) {
-            updateTournament(id, { address: newAddress });
+        const id = await createTournament(newByName);
+        if (id && newAddress.trim()) {
+            await updateTournament(id, { address: newAddress });
         }
         setNewByName('');
         setNewAddress('');
@@ -47,9 +47,9 @@ const Organizer = () => {
         setDeletingTournamentId(id);
     };
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (deletingTournamentId) {
-            deleteTournament(deletingTournamentId);
+            await deleteTournament(deletingTournamentId);
             setDeletingTournamentId(null);
         }
     };
@@ -66,10 +66,10 @@ const Organizer = () => {
         });
     };
 
-    const saveEdit = (e) => {
+    const saveEdit = async (e) => {
         e.preventDefault();
         if (!editingTournament) return;
-        updateTournament(editingTournament.id, {
+        await updateTournament(editingTournament.id, {
             name: editForm.name,
             date: new Date(editForm.date).toISOString(),
             address: editForm.address

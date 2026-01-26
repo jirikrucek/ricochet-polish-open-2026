@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Shield, Users, Trophy } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.tsx';
+import { useTournament } from '../contexts/TournamentContext';
 import './Live.css'; // Reuse Live css for animations or basic styles if needed, or inline.
 
 const Welcome = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { logout } = useAuth();
+    const { tournaments, selectTournament, isLoading } = useTournament();
 
     // If already logged in (admin), maybe redirect to Organizer? 
     // Or just show the choice anyway as requested.
@@ -84,8 +86,15 @@ const Welcome = () => {
                 {/* Participant Option */}
                 <button
                     onClick={() => {
+                        if (isLoading) return;
                         logout();
-                        navigate('/tournaments');
+                        if (tournaments.length > 0) {
+                            selectTournament(tournaments[0].id);
+                            navigate('/live');
+                        } else {
+                            // Fallback if no tournament exists (though ideally shouldn't happen based on requirements)
+                            navigate('/tournaments');
+                        }
                     }}
                     className="card hover-scale"
                     style={{

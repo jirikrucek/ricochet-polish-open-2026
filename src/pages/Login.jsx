@@ -35,7 +35,6 @@ const Login = () => {
 
         if (success) {
             navigate('/organizer', { replace: true });
-            window.location.reload();
         } else {
             setError(t('login.error'));
         }
