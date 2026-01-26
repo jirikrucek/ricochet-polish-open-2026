@@ -116,13 +116,20 @@ const Brackets = () => {
         );
     };
 
+    // Helper to extract match number for sorting
+    const getMatchNumber = (id) => {
+        const parts = id.split('-m');
+        return parts.length > 1 ? parseInt(parts[1], 10) : 0;
+    };
+    const byMatchId = (a, b) => getMatchNumber(a.id) - getMatchNumber(b.id);
+
     // Filter Matches
     const wbMatches = enrichedMatches.filter(m => m.bracket === 'wb');
     const lbMatches = enrichedMatches.filter(m => m.bracket === 'lb');
-    const gfMatches = enrichedMatches.filter(m => m.bracket === 'gf');
+    const gfMatches = enrichedMatches.filter(m => m.bracket === 'gf').sort(byMatchId);
 
-    const wbRounds = [1, 2, 3, 4, 5].map(r => wbMatches.filter(m => m.round === r));
-    const lbRounds = [1, 2, 3, 4, 5, 6, 7, 8].map(r => lbMatches.filter(m => m.round === r));
+    const wbRounds = [1, 2, 3, 4, 5].map(r => wbMatches.filter(m => m.round === r).sort(byMatchId));
+    const lbRounds = [1, 2, 3, 4, 5, 6, 7, 8].map(r => lbMatches.filter(m => m.round === r).sort(byMatchId));
 
     return (
         <div style={{ width: '100%', height: 'calc(100vh - 80px)', position: 'relative' }}>
