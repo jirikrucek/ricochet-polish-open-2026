@@ -42,16 +42,16 @@ export const useMatches = () => {
     const mapToSnake = (m) => ({
         id: m.id,
         tournament_id: activeTournamentId,
-        bracket_type: m.bracket,
-        round_id: m.round,
-        player1_id: m.player1Id,
-        player2_id: m.player2Id,
-        score1: m.score1,
-        score2: m.score2,
+        bracket_type: m.bracket || 'wb',
+        round_id: m.round || 1,
+        player1_id: m.player1Id || null,
+        player2_id: m.player2Id || null,
+        score1: m.score1 ?? null,
+        score2: m.score2 ?? null,
         micro_points: JSON.stringify(m.microPoints || []),
-        winner_id: m.winnerId,
-        status: m.status,
-        court: m.court
+        winner_id: m.winnerId || null,
+        status: m.status || 'pending',
+        court: m.court || ""
     });
 
     // Local Storage Legacy Migration / Normalization
