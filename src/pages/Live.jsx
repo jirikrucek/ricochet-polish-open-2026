@@ -20,20 +20,22 @@ const AutoScaledBracket = ({ matches, players }) => {
                 const container = containerRef.current;
                 const content = contentRef.current;
 
-                // Allow the content to define its natural size first
-                // We assume BracketCanvas has a fixed or large inherent size
+                // Aggressive Auto-Scale for TV Mode
+                const contentRect = content.getBoundingClientRect();
+                // We use scrollWidth/scrollHeight for inherent size, but precise pixel measurement is better
+                const contentW = content.scrollWidth || contentRect.width;
+                const contentH = content.scrollHeight || contentRect.height;
 
-                const availW = container.clientWidth;
-                const availH = container.clientHeight;
-                const contentW = content.scrollWidth;
-                const contentH = content.scrollHeight;
+                // Available space (Full Window in TV Mode)
+                const availW = window.innerWidth;
+                const availH = window.innerHeight;
 
-                const scaleX = availW / contentW;
-                const scaleY = availH / contentH;
+                // Maximize scale: fit either width or height effectively
+                // 0.94 width factor for margins, 0.90 height factor
+                const scaleX = (availW * 0.94) / contentW;
+                const scaleY = (availH * 0.90) / contentH;
 
-                // Fit completely within the container
-                // Use 0.95 factor for a small margin
-                const newScale = Math.min(scaleX, scaleY, 1) * 0.90;
+                const newScale = Math.min(scaleX, scaleY);
                 setScale(newScale);
             }
         };
