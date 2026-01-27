@@ -9,7 +9,7 @@ import BracketCanvas from '../components/BracketCanvas';
 import './Live.css';
 
 // Helper for Auto Scaling Bracket
-const AutoScaledBracket = ({ matches, players }) => {
+const AutoScaledBracket = ({ matches, players, visibleSections = ['wb', 'mid', 'lb'] }) => {
     const containerRef = useRef(null);
     const contentRef = useRef(null);
     const [scale, setScale] = useState(1);
@@ -47,15 +47,16 @@ const AutoScaledBracket = ({ matches, players }) => {
             window.removeEventListener('resize', calculateScale);
             clearTimeout(timer);
         };
-    }, [matches, players]);
+    };
+}, [matches, players, visibleSections]);
 
-    return (
-        <div ref={containerRef} className="auto-bracket-wrapper">
-            <div ref={contentRef} className="scaled-content" style={{ transform: `scale(${scale})` }}>
-                <BracketCanvas matches={matches} players={players} readonly={true} />
-            </div>
+return (
+    <div ref={containerRef} className="auto-bracket-wrapper">
+        <div ref={contentRef} className="scaled-content" style={{ transform: `scale(${scale})` }}>
+            <BracketCanvas matches={matches} players={players} readonly={true} visibleSections={visibleSections} />
         </div>
-    );
+    </div>
+);
 };
 
 const splitName = (fullName) => {
@@ -98,8 +99,12 @@ const Live = () => {
 
             setTimeLeft((prev) => {
                 if (prev <= 1) {
-                    // Switch view
-                    setViewMode(v => v === 'panel' ? 'bracket' : 'panel');
+                    // Switch view: Panel -> Bracket WB -> Bracket LB -> Panel
+                    setViewMode(v => {
+                        if (v === 'panel') return 'bracket_wb';
+                        if (v === 'bracket_wb') return 'bracket_lb';
+                        return 'panel';
+                    });
                     return 45;
                 }
                 return prev - 1;
@@ -409,15 +414,19 @@ const Live = () => {
                 </div>
 
                 {/* 2. Bracket View */}
-                <div className={`view-layer ${viewMode === 'bracket' ? 'active' : 'inactive'}`}>
-                    {/* We render it always but opacity controls visibility. 
-                        However, BracketCanvas layout might need to re-calc if it was hidden. 
-                        But opaque '0' elements are still laid out. 
-                    */}
-                    <AutoScaledBracket matches={matches} players={players} />
-
+                {/* 2. Bracket View (WB) */}
+                <div className={`view-layer ${viewMode === 'bracket_wb' ? 'active' : 'inactive'}`}>
+                    <AutoScaledBracket matches={matches} players={players} visibleSections={['wb', 'mid']} />
                     <div style={{ position: 'absolute', bottom: '2rem', width: '100%', textAlign: 'center', fontWeight: 'bold', color: 'var(--text-secondary)', pointerEvents: 'none' }}>
-                        LIVE BRACKET OVERVIEW
+                        LIVE BRACKET OVERVIEW - WINNERS
+                    </div>
+                </div>
+
+                {/* 3. Bracket View (LB) */}
+                <div className={`view-layer ${viewMode === 'bracket_lb' ? 'active' : 'inactive'}`}>
+                    <AutoScaledBracket matches={matches} players={players} visibleSections={['lb']} />
+                    <div style={{ position: 'absolute', bottom: '2rem', width: '100%', textAlign: 'center', fontWeight: 'bold', color: 'var(--text-secondary)', pointerEvents: 'none' }}>
+                        LIVE BRACKET OVERVIEW - LOSERS
                     </div>
                 </div>
             </div>

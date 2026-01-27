@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 // We assume parent imports Brackets.css or we import it here
 import '../pages/Brackets.css';
 
-const BracketCanvas = ({ matches, players, onMatchClick, readonly = false }) => {
+const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visibleSections = ['wb', 'mid', 'lb'] }) => {
     const { t } = useTranslation();
 
     // Enrich matches for display
@@ -81,41 +81,47 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false }) => 
     return (
         <div className="bracket-canvas">
             {/* Section A: Winners Bracket */}
-            <div className="bracket-section section-wb">
-                <div className="section-title wb-title">{t('brackets.wb')}</div>
-                <div className="bracket-rounds-container">
-                    {wbRounds.map((roundMatches, i) => (
-                        <div key={`wb-r${i}`} className="round-column">
-                            <div className="round-header">{t('brackets.round')} {i + 1}</div>
-                            {roundMatches.map(renderMatch)}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Section B: Finals / Mid */}
-            <div className="bracket-section section-mid">
-                <div className="section-title mid-title">{t('brackets.finals')}</div>
-                <div className="round-column" style={{ justifyContent: 'center' }}>
-                    {gfMatches.map(renderMatch)}
-                    <div style={{ textAlign: 'center', marginTop: '2rem', opacity: 0.5 }}>
-                        <Trophy size={48} color="gold" />
+            {visibleSections.includes('wb') && (
+                <div className="bracket-section section-wb">
+                    <div className="section-title wb-title">{t('brackets.wb')}</div>
+                    <div className="bracket-rounds-container">
+                        {wbRounds.map((roundMatches, i) => (
+                            <div key={`wb-r${i}`} className="round-column">
+                                <div className="round-header">{t('brackets.round')} {i + 1}</div>
+                                {roundMatches.map(renderMatch)}
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
+            )}
+
+            {/* Section B: Finals / Mid */}
+            {visibleSections.includes('mid') && (
+                <div className="bracket-section section-mid">
+                    <div className="section-title mid-title">{t('brackets.finals')}</div>
+                    <div className="round-column" style={{ justifyContent: 'center' }}>
+                        {gfMatches.map(renderMatch)}
+                        <div style={{ textAlign: 'center', marginTop: '2rem', opacity: 0.5 }}>
+                            <Trophy size={48} color="gold" />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Section C: Losers Bracket */}
-            <div className="bracket-section section-lb">
-                <div className="section-title lb-title">{t('brackets.lb')}</div>
-                <div className="bracket-rounds-container">
-                    {lbRounds.map((roundMatches, i) => (
-                        <div key={`lb-r${i}`} className="round-column">
-                            <div className="round-header">LB {t('brackets.round')} {i + 1}</div>
-                            {roundMatches.map(renderMatch)}
-                        </div>
-                    ))}
+            {visibleSections.includes('lb') && (
+                <div className="bracket-section section-lb">
+                    <div className="section-title lb-title">{t('brackets.lb')}</div>
+                    <div className="bracket-rounds-container">
+                        {lbRounds.map((roundMatches, i) => (
+                            <div key={`lb-r${i}`} className="round-column">
+                                <div className="round-header">LB {t('brackets.round')} {i + 1}</div>
+                                {roundMatches.map(renderMatch)}
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

@@ -110,6 +110,16 @@
     pointer-events: auto;
 }
 
+/* TV Mode Bracket Font Increase */
+.live-container.tv-mode .scaled-content .player-name {
+    font-size: 110%;
+    /* Increase by ~20% (assuming base 90% or so) */
+}
+
+/* Hide sections in bracket canvas if needed to collapse space? 
+   No, passed generic logic. Just ensure they are hidden if not rendered.
+*/
+
 .view-layer.inactive {
     opacity: 0;
     z-index: 1;
