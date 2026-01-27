@@ -98,12 +98,8 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                         const endX = destRect.left - containerRect.left + scrollLeft;
                         const endY = destRect.top - containerRect.top + scrollTop + (destRect.height / 2);
 
-                        // Smart Logic: If destination is physically FAR (e.g. next section), maintain angularity.
                         // Standard Angular Drop
                         const midX = (startX + endX) / 2;
-
-                        // For WB R1 -> LB R1 specifically, check if we need special handling
-                        // Usually simple step works fine.
 
                         newPaths.push({
                             id: `${m.id}-loss`,
@@ -209,10 +205,10 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
 
             <div ref={containerRef} className="bracket-layout" style={{ display: 'flex', flexDirection: 'row', minWidth: 'max-content', minHeight: '100vh' }}>
 
-                {/* 1. Main Bracket (Places 1-16) */}
+                {/* 1. Winners Bracket */}
                 {visibleSections.includes('wb') && (
                     <div className="section-wb" style={{ display: 'flex', flexDirection: 'column', padding: '40px', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
-                        <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '40px', opacity: 0.8, letterSpacing: '2px' }}>Main - Places 1-16</h2>
+                        <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '40px', opacity: 0.8, letterSpacing: '2px' }}>Winners Bracket</h2>
                         <div style={{ display: 'flex', gap: '50px' }}>
                             {wbRounds.map((roundMatches, i) => (
                                 <div key={i} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: '20px' }}>
@@ -229,10 +225,10 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                     </div>
                 )}
 
-                {/* 2. Placement 17-32 (Losers Bracket) */}
+                {/* 2. Losers Bracket */}
                 {visibleSections.includes('lb') && (
                     <div className="section-lb" style={{ display: 'flex', flexDirection: 'column', padding: '40px', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
-                        <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '40px', opacity: 0.8, letterSpacing: '2px' }}>Places 17-32</h2>
+                        <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '40px', opacity: 0.8, letterSpacing: '2px' }}>Losers Bracket</h2>
                         <div style={{ display: 'flex', gap: '50px' }}>
                             {lbRounds.map((roundMatches, i) => (
                                 <div key={i} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: '20px' }}>
@@ -243,10 +239,10 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                     </div>
                 )}
 
-                {/* 3. Lower Placements */}
+                {/* 3. Placement Matches */}
                 {(visibleSections.includes('lb') || visibleSections.includes('all')) && (
                     <div className="section-monrad" style={{ display: 'flex', flexDirection: 'column', padding: '40px' }}>
-                        <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '40px', opacity: 0.8, letterSpacing: '2px' }}>Lower Placements</h2>
+                        <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '40px', opacity: 0.8, letterSpacing: '2px' }}>Placement Matches</h2>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '30px', maxWidth: '800px' }}>
                             {monradConfig.map(group => {
                                 let groupMatches = enrichedMatches.filter(m => group.brackets.some(b => m.bracket.startsWith(b)));
