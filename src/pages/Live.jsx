@@ -32,7 +32,7 @@ const AutoScaledBracket = ({ matches, players }) => {
 
                 // Fit completely within the container
                 // Use 0.95 factor for a small margin
-                const newScale = Math.min(scaleX, scaleY, 1) * 0.95;
+                const newScale = Math.min(scaleX, scaleY, 1) * 0.90;
                 setScale(newScale);
             }
         };

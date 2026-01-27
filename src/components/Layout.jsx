@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth.tsx';
 import {
@@ -29,6 +29,7 @@ const Layout = () => {
     const { t } = useTranslation();
     const { isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation(); // Keep track of current path
 
     // Force dark theme as per new design
     useEffect(() => {
@@ -53,6 +54,9 @@ const Layout = () => {
         return isAuthenticated;
     });
 
+    // Check if we are in Live View Presentation Mode
+    const isLiveView = location.pathname === '/live';
+
     return (
         <div className="app-container">
             {/* Top Header */}
@@ -76,46 +80,48 @@ const Layout = () => {
                 </div>
             </header>
 
-            {/* Desktop Sidebar */}
-            <aside className="sidebar">
-                <nav className="nav-list">
-                    {filteredNavItems.map((item, index) => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            className={({ isActive }) =>
-                                `nav-item ${isActive ? 'active' : ''} ${isActive ? (index % 2 === 0 ? 'accent-pink' : 'accent-cyan') : ''}`
-                            }
-                        >
-                            <item.icon size={20} />
-                            <span>{t(`navigation.${item.key}`)}</span>
-                        </NavLink>
-                    ))}
-                </nav>
-            </aside>
+            {/* Desktop Sidebar - Hidden in Live View */}
+            {!isLiveView && (
+                <aside className="sidebar">
+                    <nav className="nav-list">
+                        {filteredNavItems.map((item, index) => (
+                            <NavLink
+                                key={item.path}
+                                to={item.path}
+                                className={({ isActive }) =>
+                                    `nav-item ${isActive ? 'active' : ''} ${isActive ? (index % 2 === 0 ? 'accent-pink' : 'accent-cyan') : ''}`
+                                }
+                            >
+                                <item.icon size={20} />
+                                <span>{t(`navigation.${item.key}`)}</span>
+                            </NavLink>
+                        ))}
+                    </nav>
+                </aside>
+            )}
 
-            {/* Main Content Area */}
-            <main className="main-content">
+            {/* Main Content Area - Full Width in Live View */}
+            <main className="main-content" style={isLiveView ? { marginLeft: 0, padding: 0 } : {}}>
                 <div className="page-container">
                     <Outlet />
                 </div>
-
-
             </main>
 
-            {/* Mobile Bottom Navigation */}
-            <nav className="bottom-nav">
-                {filteredNavItems.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
-                    >
-                        <item.icon size={20} />
-                        <span style={{ fontSize: '10px' }}>{t(`navigation.${item.key}`)}</span>
-                    </NavLink>
-                ))}
-            </nav>
+            {/* Mobile Bottom Navigation - Hidden in Live View */}
+            {!isLiveView && (
+                <nav className="bottom-nav">
+                    {filteredNavItems.map((item) => (
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+                        >
+                            <item.icon size={20} />
+                            <span style={{ fontSize: '10px' }}>{t(`navigation.${item.key}`)}</span>
+                        </NavLink>
+                    ))}
+                </nav>
+            )}
         </div>
     );
 };

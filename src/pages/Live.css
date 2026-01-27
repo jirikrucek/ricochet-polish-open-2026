@@ -337,16 +337,26 @@
 /* Bracket Auto Scale */
 .auto-bracket-wrapper {
     width: 100%;
-    height: calc(100vh - 120px);
+    /* 100vh minus header (~80px) and some padding */
+    height: calc(100vh - 100px);
     overflow: hidden;
     position: relative;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
+    /* Center Vertically */
 }
 
 .scaled-content {
-    transform-origin: top center;
+    transform-origin: center center;
+    /* Scale from center */
     width: max-content;
     /* transition: transform 0.5s ease-out; */
+}
+
+/* Sharpness & Readability for Big Bracket */
+.scaled-content .player-name {
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    /* Slight shadow for readability */
 }
