@@ -98,8 +98,10 @@ export const getBracketBlueprint = () => {
     });
     // LB R2
     allMatches.filter(m => m.bracket === 'lb' && m.round === 2).forEach((m, i) => {
+        // Cross-Pool: Top WB (0-3) -> Bottom LB (4-7) | Bottom WB -> Top LB
+        const wbIndex = (i < 4) ? (i + 4) : (i - 4);
         m.sourceMatchId1 = `lb-r1-m${i + 1}`; m.sourceType1 = 'winner';
-        m.sourceMatchId2 = `wb-r2-m${i + 1}`; m.sourceType2 = 'loser';
+        m.sourceMatchId2 = `wb-r2-m${wbIndex + 1}`; m.sourceType2 = 'loser';
     });
     // LB R3
     allMatches.filter(m => m.bracket === 'lb' && m.round === 3).forEach((m, i) => {
@@ -144,8 +146,17 @@ export const getBracketBlueprint = () => {
     // LB R1 has 8 matches (1-8).
     // p25-r1-m1 takes losers of lb-r1-m1 and lb-r1-m2
     allMatches.filter(m => m.bracket === 'p25' && m.round === 1).forEach((m, i) => {
-        m.sourceMatchId1 = `lb-r1-m${i * 2 + 1}`; m.sourceType1 = 'loser';
-        m.sourceMatchId2 = `lb-r1-m${i * 2 + 2}`; m.sourceType2 = 'loser';
+        // Cross-Pool: Top LB (1-4) -> Bottom P25 (3-4) | Bottom LB -> Top P25
+        let lbBaseIndex;
+        if (i < 2) {
+            // Top P25 (Target 1,2) <- Bottom LB Losers (Matches 5,6 & 7,8)
+            lbBaseIndex = 4 + (i * 2);
+        } else {
+            // Bottom P25 (Target 3,4) <- Top LB Losers (Matches 1,2 & 3,4)
+            lbBaseIndex = (i - 2) * 2;
+        }
+        m.sourceMatchId1 = `lb-r1-m${lbBaseIndex + 1}`; m.sourceType1 = 'loser';
+        m.sourceMatchId2 = `lb-r1-m${lbBaseIndex + 2}`; m.sourceType2 = 'loser';
     });
     // 25-32 R2 (Winners -> 25-28)
     allMatches.filter(m => m.bracket === 'p25' && m.round === 2).forEach((m, i) => {
