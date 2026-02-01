@@ -103,22 +103,36 @@ export const getBracketBlueprint = () => {
         m.sourceMatchId2 = `wb-r1-m${i * 2 + 2}`; m.sourceType2 = 'loser';
     });
 
-    // LB R2 (9-16) - DOUBLE FULL INVERSION (Swaps both Winners and Droppers)
-    // To move bottom players (like Klemm from M15/M16 -> LB R1 M8) to the TOP of LB R2.
+    // LB R2 (9-16) - BLOCK CROSS-OVER INVERSION (Explicit User Map v3)
+    // Rules:
+    // WB Matches 1/2 -> LB Slots 3/4
+    // WB Matches 3/4 -> LB Slots 1/2
+    // WB Matches 5/6 -> LB Slots 7/8
+    // WB Matches 7/8 -> LB Slots 5/6  <- Klemm Rocco (WB M8) lands here
     allMatches.filter(m => m.bracket === 'lb' && m.round === 2).forEach((m, i) => {
-        const matchNum = i + 1;
+        const matchNum = i + 1; // 1 to 8
 
-        // Source 1: Winner from previous LB round (INVERTED)
-        // Match 1 (Top) gets Winner from LB R1 Match 8 (Bottom)
-        // Match 8 (Bottom) gets Winner from LB R1 Match 1 (Top)
-        const lbSourceNum = 9 - matchNum; // 1->8, 8->1
-        m.sourceMatchId1 = `lb-r1-m${lbSourceNum}`; m.sourceType1 = 'winner';
+        // Source 1: Standard Winner Flow (LB R1 M[i] -> LB R2 M[i])
+        // Assumption: Winner flow remains straight.
+        m.sourceMatchId1 = `lb-r1-m${matchNum}`; m.sourceType1 = 'winner';
+        m.sourceType2 = 'loser';
 
-        // Source 2: Loser from WB R2 (INVERTED)
-        // Match 1 (Top) gets Loser from WB R2 M8 (Bottom)
-        // Match 8 (Bottom) gets Loser from WB R2 M1 (Top)
-        const wbSourceNum = 9 - matchNum; // 1->8, 8->1
-        m.sourceMatchId2 = `wb-r2-m${wbSourceNum}`; m.sourceType2 = 'loser';
+        // Source 2: Loser Drop from WB R2 (Block Cross-Over)
+        switch (matchNum) {
+            case 1: m.sourceMatchId2 = 'wb-r2-m3'; break; // Top Slot gets WB M3
+            case 2: m.sourceMatchId2 = 'wb-r2-m4'; break; // Top Slot gets WB M4
+
+            case 3: m.sourceMatchId2 = 'wb-r2-m1'; break; // Mid-High Slot gets WB M1
+            case 4: m.sourceMatchId2 = 'wb-r2-m2'; break; // Mid-High Slot gets WB M2
+
+            case 5: m.sourceMatchId2 = 'wb-r2-m7'; break; // Mid-Low Slot gets WB M7
+            case 6: m.sourceMatchId2 = 'wb-r2-m8'; break; // Mid-Low Slot gets WB M8
+
+            case 7: m.sourceMatchId2 = 'wb-r2-m5'; break; // Bottom Slot gets WB M5
+            case 8: m.sourceMatchId2 = 'wb-r2-m6'; break; // Bottom Slot gets WB M6
+
+            default: m.sourceMatchId2 = null;
+        }
     });
     // LB R3
     allMatches.filter(m => m.bracket === 'lb' && m.round === 3).forEach((m, i) => {
