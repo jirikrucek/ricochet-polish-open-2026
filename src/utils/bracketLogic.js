@@ -103,24 +103,26 @@ export const getBracketBlueprint = () => {
         m.sourceMatchId2 = `wb-r1-m${i * 2 + 2}`; m.sourceType2 = 'loser';
     });
 
-    // LB R2 - BIG 'X' CROSS-OVER (Placement 9-16)
-    // Top LB (1-4) <- Bottom WB (5-8)
-    // Bottom LB (5-8) <- Top WB (1-4)
-    // LB R2 (9-16) - FULL VERTICAL INVERSION (The Big X)
-    // Pair Winners from LB R1 vs Losers from WB R2
-    // Logic: Absolute Inversion. Top WB Loser -> Bottom LB Slot. Bottom WB Loser -> Top LB Slot.
-    // L1 -> Match 8 (i=7)
-    // L8 -> Match 1 (i=0)
-    // Formula: Match i has WB Source (8-i).
+    // LB R2 (9-16) - HARDCODED PER USER REQUEST (Explicit Inversion)
     allMatches.filter(m => m.bracket === 'lb' && m.round === 2).forEach((m, i) => {
-        // Source 1: Winner from previous LB round (Sequential/Straight)
-        m.sourceMatchId1 = `lb-r1-m${i + 1}`; m.sourceType1 = 'winner';
+        const matchNum = i + 1;
 
-        // Source 2: Loser from WB R2 (Full Inversion)
-        // i=0 (LB 1) <- WB 8
-        // i=7 (LB 8) <- WB 1
-        const wbTarget = 8 - i;
-        m.sourceMatchId2 = `wb-r2-m${wbTarget}`; m.sourceType2 = 'loser';
+        // Source 1: Winner from previous LB round (Sequential/Straight)
+        m.sourceMatchId1 = `lb-r1-m${matchNum}`; m.sourceType1 = 'winner';
+        m.sourceType2 = 'loser';
+
+        // Source 2: Loser from WB R2 (Explicit Hardcoded Inverse)
+        // Match 1 (Top) -> WB R2 M8 (L8 - Bottom)
+        // Match 8 (Bottom) -> WB R2 M1 (L1 - Top)
+        if (matchNum === 1) m.sourceMatchId2 = 'wb-r2-m8';
+        else if (matchNum === 2) m.sourceMatchId2 = 'wb-r2-m7';
+        else if (matchNum === 3) m.sourceMatchId2 = 'wb-r2-m6';
+        else if (matchNum === 4) m.sourceMatchId2 = 'wb-r2-m5';
+        else if (matchNum === 5) m.sourceMatchId2 = 'wb-r2-m4';
+        else if (matchNum === 6) m.sourceMatchId2 = 'wb-r2-m3';
+        else if (matchNum === 7) m.sourceMatchId2 = 'wb-r2-m2';
+        else if (matchNum === 8) m.sourceMatchId2 = 'wb-r2-m1';
+        else m.sourceMatchId2 = null;
     });
     // LB R3
     allMatches.filter(m => m.bracket === 'lb' && m.round === 3).forEach((m, i) => {
