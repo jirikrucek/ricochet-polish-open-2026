@@ -33,16 +33,6 @@ const Brackets = () => {
     const { isAuthenticated } = useAuth();
     const { activeTournamentId, updateTournament } = useTournament();
 
-    // FORCE CLEAR LOCAL STORAGE for Brackets to ensure new logic is applied (One-time or on mount)
-    useEffect(() => {
-        console.log("FORCE CLEARING BRACKET CACHE per request");
-        Object.keys(localStorage).forEach(key => {
-            if (key.includes('ricochet_bracket_data')) {
-                localStorage.removeItem(key);
-            }
-        });
-    }, []);
-
     const handleGenerate = async () => {
         if (!isAuthenticated) return;
         if (players.length < 2) {
