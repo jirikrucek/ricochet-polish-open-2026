@@ -57,63 +57,43 @@ export const getBracketBlueprint = () => {
     // NUCLEAR WIPE: ONLY WB R1 ALLOWED
     // ... WB R1 Config existing ...
 
-    // --- FASE 2: ADD LOSERS ROUND 1 (17-32) - EXTREME MIRROR 1vs16 ---
-    const lbCounts = [8]; // Activate Round 1 only
-    lbCounts.forEach((count, rIdx) => {
-        const round = rIdx + 1;
-        for (let m = 1; m <= count; m++) {
-            allMatches.push({ id: `lb-r${round}-m${m}`, round: round, bracket: 'lb', sourceMatchId1: null, sourceType1: null, sourceMatchId2: null, sourceType2: null });
-        }
-    });
-
-    // --- FASE 3: WINNERS ROUND 2 (8 Matches) ---
-    // Standard Progression: W(M1)+W(M2) -> M1, etc.
-    for (let m = 1; m <= 8; m++) {
+    // --- FASE 2: LB ROUND 1 (17-32) ---
+    // Logic: Match i (1-8) takes Loser WB i + Loser WB (17-i)
+    for (let i = 1; i <= 8; i++) {
+        const wbMatchNumA = i;
+        const wbMatchNumB = 17 - i;
         allMatches.push({
-            id: `wb-r2-m${m}`, round: 2, bracket: 'wb',
-            score1: 3, score2: 0, // Auto-resolve P1 as winner
-            sourceMatchId1: `wb-r1-m${m * 2 - 1}`, sourceType1: 'winner',
-            sourceMatchId2: `wb-r1-m${m * 2}`, sourceType2: 'winner'
+            id: `lb-r1-m${i}`, round: 1, bracket: 'lb',
+            sourceMatchId1: `wb-r1-m${wbMatchNumA}`, sourceType1: 'loser',
+            sourceMatchId2: `wb-r1-m${wbMatchNumB}`, sourceType2: 'loser'
         });
     }
 
-    // --- FASE 3: LOSERS ROUND 2 (Placement 9-16) ---
-    for (let m = 1; m <= 8; m++) {
-        allMatches.push({ id: `lb-r2-m${m}`, round: 2, bracket: 'lb', sourceMatchId1: null, sourceType1: null, sourceMatchId2: null, sourceType2: null });
+    // --- FASE 3: WB ROUND 2 (1-16) ---
+    // Logic: Match i (1-8) takes Winner WB (2*i-1) + Winner WB (2*i)
+    for (let i = 1; i <= 8; i++) {
+        allMatches.push({
+            id: `wb-r2-m${i}`, round: 2, bracket: 'wb',
+            score1: 3, score2: 0, // Auto-advance for testing
+            sourceMatchId1: `wb-r1-m${i * 2 - 1}`, sourceType1: 'winner',
+            sourceMatchId2: `wb-r1-m${i * 2}`, sourceType2: 'winner'
+        });
     }
 
-    // --- MAPPING LOGIC ---
+    // --- FASE 4: LB ROUND 2 (Placement 9-16) - "BIG X" INVERSION ---
+    // Logic: LB R2 M(i) <- Loser WB R2 M(9-i)
+    for (let i = 1; i <= 8; i++) {
+        const invertedWbMatch = 9 - i;
+        allMatches.push({
+            id: `lb-r2-m${i}`, round: 2, bracket: 'lb',
+            sourceMatchId1: `lb-r1-m${i}`, sourceType1: 'winner', // Straight flow from LB R1
+            sourceMatchId2: `wb-r2-m${invertedWbMatch}`, sourceType2: 'loser' // CROSS-OVER
+        });
+        console.log(`Inversion confirmed: WB M${invertedWbMatch} -> LB M${i}`);
+    }
 
-    // LB R1 Maps Losers from WB R1
-    // Logic: Match i (1-8) takes L(WB i) + L(WB 17-i)
-    allMatches.filter(m => m.bracket === 'lb' && m.round === 1).forEach((m, i) => {
-        const matchNum = i + 1;
-        const lowSeedInverted = 17 - matchNum; // if i=0(M1) -> 16
-
-        m.sourceMatchId1 = `wb-r1-m${matchNum}`; m.sourceType1 = 'loser';
-        m.sourceMatchId2 = `wb-r1-m${lowSeedInverted}`; m.sourceType2 = 'loser';
-    });
-
-    // LB R2 Logic: Full Vertical Inversion
-    // LB Match 1 (Top) <- LB R1 M1 (Winner) + WB R2 M8 (Loser)
-    // LB Match 8 (Bottom) <- LB R1 M8 (Winner) + WB R2 M1 (Loser)
-    console.group("LB R2 Inversion Check");
-    allMatches.filter(m => m.bracket === 'lb' && m.round === 2).forEach((m, i) => {
-        const matchNum = i + 1; // 1-8
-
-        // Source 1: Winner from LB R1 (Straight)
-        m.sourceMatchId1 = `lb-r1-m${matchNum}`; m.sourceType1 = 'winner';
-
-        // Source 2: Loser from WB R2 (INVERTED)
-        // Formula: Target WB Match = 9 - LB Match Num
-        // 9-1 = 8
-        // 9-8 = 1
-        const wbMatchNum = 9 - matchNum;
-        m.sourceMatchId2 = `wb-r2-m${wbMatchNum}`; m.sourceType2 = 'loser';
-
-        console.log(`Inversion confirmed: WB M${wbMatchNum} -> LB M${matchNum}`);
-    });
-    console.groupEnd();
+    // --- STOP HERE FOR NOW (CLEAN BUILD) ---
+    return allMatches;
 
     // --- COMMENTED OUT FUTURE ROUNDS FOR STABILITY ---
     /*
