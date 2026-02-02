@@ -1,11 +1,24 @@
 
 // Helper: Static Seeding Order - Professional Layout
-// Order: [1,32], [16,17], [9,24], [8,25], [5,28], [12,21], [13,20], [4,29], [3,30], [14,19], [11,22], [6,27], [7,26], [10,23], [15,18], [2,31]
+// M1=A, M2=B, ..., M15=O, M16=P
+// Order: Match A [1,32], Match B [16,17], ... Match O [15,18], Match P [2,31]
 const SEEDING_ORDER = [
-    [1, 32], [16, 17], [9, 24], [8, 25],
-    [5, 28], [12, 21], [13, 20], [4, 29],
-    [3, 30], [14, 19], [11, 22], [6, 27],
-    [7, 26], [10, 23], [15, 18], [2, 31]
+    [1, 32],   // Match A
+    [16, 17],  // Match B
+    [9, 24],   // Match C
+    [8, 25],   // Match D
+    [5, 28],   // Match E
+    [12, 21],  // Match F
+    [13, 20],  // Match G
+    [4, 29],   // Match H
+    [3, 30],   // Match I
+    [14, 19],  // Match J
+    [11, 22],  // Match K
+    [6, 27],   // Match L
+    [7, 26],   // Match M
+    [10, 23],  // Match N
+    [15, 18],  // Match O (Zaborowska vs Van Delden)
+    [2, 31]    // Match P
 ];
 
 export const getBracketBlueprint = () => {
