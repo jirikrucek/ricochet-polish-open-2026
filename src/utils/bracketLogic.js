@@ -92,33 +92,34 @@ export const getBracketBlueprint = () => {
         });
     });
 
-    // --- LB R2 (8 Matches) - WB R2 Losers (CROSS / BIG X) ---
-    // Requirement:
-    // WB Matches I, J, K, L are WB R2 M1, M2, M3, M4? No.
-    // WB Matches A-H are R1. I-L are R2. Wait.
-    // WB R1 has 16 matches (A-P).
-    // WB R2 has 8 matches.
-    // User Schema shows letters I, J, K, L... wait.
-    // Schema: 
-    // Left side:
-    // A (1/32) -> W goes to I.
-    // B (16/17) -> W goes to I? No. A and B feed I? Standard is M1+M2->M1.
-    // Assuming standard WB structure.
-    // LB R2 logic from user: "Przegrany z WB R2 (I, J, K, L) spadają do LB R2".
-    // "Przegrany z górnego WB R2 (L) trafia do dolnej LB R2".
-    // "Przegrany z dolnego WB R2 (I) trafia do górnej LB R2".
-    // This implies Big X CROSS.
-    // LB M1 feeds from [LB R1 M1] and [WB R2 M8 - inverted].
-    // Let's us standardized CROSS: LB M(i) takes WB M(9-i).
-    for (let i = 1; i <= 8; i++) {
-        const invertedWbMatch = 9 - i;
+    // --- LB R2 (8 Matches) - WB R2 Losers (HARDCODED BIG X) ---
+    // User Requirement:
+    // WB R2 M1 (Top) -> LB R2 M4 (Bottom)
+    // WB R2 M2 -> LB R2 M3
+    // WB R2 M3 -> LB R2 M2
+    // WB R2 M4 (Bottom) -> LB R2 M1 (Top)
+    // And what about indices 5-8?
+    // User only specified M1-M4 (top half dropping to top half of LB?)
+    // WB R2 has 8 matches. The instruction says "Logika Wielki X". 
+    // Usually means: WB Top Half -> LB Bottom Half. WB Bottom Half -> LB Top Half.
+    // If WB M1->LB M4, then WB M5->LB M8?
+    // Let's implement full Big X: WB M(i) -> LB M(8-i+1)? No, WB M1->LB M4 implies mapping within block of 4.
+    // So 1-4 X-cross, 5-8 X-cross.
+    // Block 1 (WB 1-4): 1->4, 2->3, 3->2, 4->1.
+    // Block 2 (WB 5-8): 5->8, 6->7, 7->6, 8->5.
+    const lbR2Map = [
+        { lb: 1, wb: 4 }, { lb: 2, wb: 3 }, { lb: 3, wb: 2 }, { lb: 4, wb: 1 },
+        { lb: 5, wb: 8 }, { lb: 6, wb: 7 }, { lb: 7, wb: 6 }, { lb: 8, wb: 5 }
+    ];
+
+    lbR2Map.forEach(map => {
         allMatches.push({
-            id: `lb-r2-m${i}`, round: 2, bracket: 'lb',
-            sourceMatchId1: `lb-r1-m${i}`, sourceType1: 'winner',
-            sourceMatchId2: `wb-r2-m${invertedWbMatch}`, sourceType2: 'loser',
-            nextMatchId: `lb-r3-m${Math.ceil(i / 2)}`
+            id: `lb-r2-m${map.lb}`, round: 2, bracket: 'lb',
+            sourceMatchId1: `lb-r1-m${map.lb}`, sourceType1: 'winner',
+            sourceMatchId2: `wb-r2-m${map.wb}`, sourceType2: 'loser',
+            nextMatchId: `lb-r3-m${Math.ceil(map.lb / 2)}`
         });
-    }
+    });
 
     // --- LB R3 (4 Matches) ---
     for (let i = 1; i <= 4; i++) {
@@ -152,15 +153,22 @@ export const getBracketBlueprint = () => {
         });
     }
 
-    // --- LB R6 (2 Matches) - WB R4 Losers (DIRECT MAPPING 1:1) ---
-    for (let i = 1; i <= 2; i++) {
+    // --- LB R6 (2 Matches) - WB R4 Losers (HARDCODED DIRECT) ---
+    // User Requirement: 
+    // WB R4 M1 (Top) -> LB R6 M1 (Top)
+    // WB R4 M2 (Bottom) -> LB R6 M2 (Bottom)
+    const lbR6Map = [
+        { lb: 1, wb: 1 },
+        { lb: 2, wb: 2 }
+    ];
+    lbR6Map.forEach(map => {
         allMatches.push({
-            id: `lb-r6-m${i}`, round: 6, bracket: 'lb',
-            sourceMatchId1: `lb-r5-m${i}`, sourceType1: 'winner',
-            sourceMatchId2: `wb-r4-m${i}`, sourceType2: 'loser',
+            id: `lb-r6-m${map.lb}`, round: 6, bracket: 'lb',
+            sourceMatchId1: `lb-r5-m${map.lb}`, sourceType1: 'winner',
+            sourceMatchId2: `wb-r4-m${map.wb}`, sourceType2: 'loser',
             nextMatchId: `lb-r7-m1`
         });
-    }
+    });
 
     // --- LB R7 (1 Match) ---
     allMatches.push({
