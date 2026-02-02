@@ -26,7 +26,7 @@ const SCORE_MODAL_STYLES = {
 const Brackets = () => {
     const { t } = useTranslation();
     const { players } = usePlayers();
-    const { matches, saveMatches } = useMatches();
+    const { matches, saveMatches, resetMatches } = useMatches();
     const [selectedMatch, setSelectedMatch] = useState(null);
     const [scoreA, setScoreA] = useState('');
     const [scoreB, setScoreB] = useState('');
@@ -40,6 +40,9 @@ const Brackets = () => {
             return;
         }
         if (window.confirm(t('brackets.resetConfirm'))) {
+            // Clear old matches first to ensure clean ID set (especially after logic updates)
+            if (resetMatches) await resetMatches();
+
             const newBracket = generateDoubleEliminationBracket(players);
             // Save matches to DB
             await saveMatches(newBracket);

@@ -123,21 +123,37 @@ export const useMatches = () => {
         };
     }, [activeTournamentId, lsKey]);
 
+    const resetMatches = async () => {
+        if (!isAuthenticated || !activeTournamentId || !isFirebaseConfigured) return;
+        try {
+            const q = query(collection(db, "matches"), where("tournament_id", "==", activeTournamentId));
+            const snapshot = await getDocs(q);
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        } catch (e) {
+            console.error("Error resetting matches:", e);
+        }
+    };
+
     const saveMatches = async (newMatches) => {
         if (!isAuthenticated || !activeTournamentId) return;
-
-        // console.log("Próba zapisu do Firebase...", newMatches);
 
         if (isFirebaseConfigured) {
             try {
                 const { setDoc } = await import('firebase/firestore');
+
+                // If this seems like a full regeneration (many matches), we might want to clear old ones first
+                // to avoid ID conflicts or stale data. But saveMatches is also used for updates.
+                // We'll leave that decision to the caller (use resetMatches() before saveMatches() if needed).
 
                 const payload = newMatches.map(m => {
                     const snake = mapToSnake(m);
                     return snake;
                 });
 
-                // Using setDoc for all to ensure overwrite/create with specific ID
                 for (const match of payload) {
                     if (!match.id) continue;
                     const docRef = doc(db, "matches", match.id);
@@ -156,5 +172,5 @@ export const useMatches = () => {
     };
 
 
-    return { matches, saveMatches };
+    return { matches, saveMatches, resetMatches };
 };
