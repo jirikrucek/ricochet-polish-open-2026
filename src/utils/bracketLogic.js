@@ -1,7 +1,5 @@
-
 // Helper: Static Seeding Order - Professional Layout
-// M1=A, M2=B, ..., M15=O, M16=P
-// Order: Match A [1,32], Match B [16,17], ... Match O [15,18], Match P [2,31]
+// Order: [1,32], [16,17], [9,24], [8,25], [5,28], [12,21], [13,20], [4,29], [3,30], [14,19], [11,22], [6,27], [7,26], [10,23], [15,18], [2,31]
 const SEEDING_ORDER = [
     [1, 32],   // Match A
     [16, 17],  // Match B
@@ -17,7 +15,7 @@ const SEEDING_ORDER = [
     [6, 27],   // Match L
     [7, 26],   // Match M
     [10, 23],  // Match N
-    [15, 18],  // Match O (Zaborowska vs Van Delden)
+    [15, 18],  // Match O 
     [2, 31]    // Match P
 ];
 
@@ -29,10 +27,6 @@ export const getBracketBlueprint = () => {
         allMatches.push({
             id: `wb-r1-m${i}`, round: 1, bracket: 'wb',
             nextMatchId: `wb-r2-m${Math.ceil(i / 2)}`
-            // Loser destination determined in logic or map below? 
-            // Better to define relations dynamically or here.
-            // Requirement specifies complex mapping (Mirror).
-            // We'll define sources here for LB to avoid "chicken and egg".
         });
     }
 
@@ -74,35 +68,42 @@ export const getBracketBlueprint = () => {
         nextMatchId: `gf-m1`
     });
 
-
-    // --- LB R1 (8 Matches) - WB R1 Losers (SIMPLE LINEAR) ---
-    // User Requirement: Sequential pairing from WB R1
-    // LB Match 1 takes WB M1 & WB M2
-    // ...
-    // LB Match 8 takes WB M15 & WB M16
+    // --- LB R1 (8 Matches) - WB R1 Losers (CROSS PAIRING) ---
+    // User Requirement: Sum of WB Indices = 17.
+    // Match 1: WB M1 vs WB M16.
+    // Match 2: WB M2 vs WB M15.
+    // Match i: WB M(i) vs WB M(17-i).
+    // Note: To match "Standard" visual flow, we usually map top-down.
+    // LB Match 1 should take top pair. LB Match 8 should take bottom pair?
+    // Actually, usually indices i=1..8 correspond to WB M1..M8 paired with M16..M9.
+    // So LB M1 pairs W1 & W16. LB M2 pairs W2 & W15. ... LB M8 pairs W8 & W9.
     for (let i = 1; i <= 8; i++) {
         allMatches.push({
             id: `lb-r1-m${i}`, round: 1, bracket: 'lb',
-            sourceMatchId1: `wb-r1-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `wb-r1-m${i * 2}`, sourceType2: 'loser',
+            sourceMatchId1: `wb-r1-m${i}`, sourceType1: 'loser',
+            sourceMatchId2: `wb-r1-m${17 - i}`, sourceType2: 'loser',
             nextMatchId: `lb-r2-m${i}`
         });
     }
 
-    // --- LB R2 (8 Matches) - WB R2 Losers (BIG X) ---
-    // Source 1: LB R1 Winner (Straight)
-    // Source 2: WB R2 Loser (Inverted: WB M1 -> LB M8, WB M8 -> LB M1)
+    // --- LB R2 (8 Matches) - WB R2 Losers (Straight) ---
+    // Standard DE: Winners of LB R1 play Losers of WB R2.
+    // User said "Classic Brazilian". Usually involves some crossover, but "Straight" is safest if not specified beyond "Big X".
+    // Wait, recent instructions said "Big X" previously, but this prompt says "Total Reset... Classic Brazilian".
+    // But it explicitly defined LB R1. It didn't explicitly define LB R2 mapping, only "Placement 17-32 from LB R2 losers".
+    // I will stick to "Big X" logic for LB R2 as it's standard for Brazilian to avoid repeats.
+    // Inverse: LB M1 (from WB 1/16) plays Loser WB R2 M8 (from WB 15/16/1/2? No).
+    // Let's use standard Big X: LB M(i) plays WB R2 M(9-i).
     for (let i = 1; i <= 8; i++) {
-        const invertedWbMatch = 9 - i;
         allMatches.push({
             id: `lb-r2-m${i}`, round: 2, bracket: 'lb',
             sourceMatchId1: `lb-r1-m${i}`, sourceType1: 'winner',
-            sourceMatchId2: `wb-r2-m${invertedWbMatch}`, sourceType2: 'loser',
+            sourceMatchId2: `wb-r2-m${9 - i}`, sourceType2: 'loser',
             nextMatchId: `lb-r3-m${Math.ceil(i / 2)}`
         });
     }
 
-    // --- LB R3 (4 Matches) - Internal LB Adv ---
+    // --- LB R3 (4 Matches) ---
     for (let i = 1; i <= 4; i++) {
         allMatches.push({
             id: `lb-r3-m${i}`, round: 3, bracket: 'lb',
@@ -112,25 +113,11 @@ export const getBracketBlueprint = () => {
         });
     }
 
-    // --- LB R4 (4 Matches) - WB R3 Losers (SHIFT 2 BLOCKS) ---
-    // User: WB Q1 -> LB QL3, Q2 -> QL4, Q3 -> QL1, Q4 -> QL2
-    // WB R3 M1 -> LB R4 M3
-    // WB R3 M2 -> LB R4 M4
-    // WB R3 M3 -> LB R4 M1
-    // WB R3 M4 -> LB R4 M2
-    const lbR4Map = [3, 4, 1, 2]; // Index 0 (WB M1) -> 3
+    // --- LB R4 (4 Matches) - WB R3 Losers (Shift) ---
+    // Standard Cross/Shift. Let's use the explicit map [3,4,1,2] from before as it worked well.
+    const lbR4Map = [3, 4, 1, 2];
     for (let i = 1; i <= 4; i++) {
-        // Logic: specific source for each LB match
-        // Reverse lookup: Which WB match feeds LB M(i)?
-        // if i=1, source is WB M3. if i=2, source WB M4. if i=3, source WB M1. if i=4, source WB M2.
-        // map index is wb match - 1. val is lb match.
-        // We want to generate LB m1..4
-        let wbSourceIndex;
-        if (i === 1) wbSourceIndex = 3;
-        if (i === 2) wbSourceIndex = 4;
-        if (i === 3) wbSourceIndex = 1;
-        if (i === 4) wbSourceIndex = 2;
-
+        let wbSourceIndex = lbR4Map[i - 1];
         allMatches.push({
             id: `lb-r4-m${i}`, round: 4, bracket: 'lb',
             sourceMatchId1: `lb-r3-m${i}`, sourceType1: 'winner',
@@ -139,7 +126,7 @@ export const getBracketBlueprint = () => {
         });
     }
 
-    // --- LB R5 (2 Matches) - Internal ---
+    // --- LB R5 (2 Matches) ---
     for (let i = 1; i <= 2; i++) {
         allMatches.push({
             id: `lb-r5-m${i}`, round: 5, bracket: 'lb',
@@ -149,11 +136,8 @@ export const getBracketBlueprint = () => {
         });
     }
 
-    // --- LB R6 (2 Matches) - WB R4 Losers (DIRECT MAPPING) ---
-    // User Requirement:
-    // WB SF1 (Top, M1) -> LB M1 (Top)
-    // WB SF2 (Bottom, M2) -> LB M2 (Bottom)
-    // No mirror here.
+    // --- LB R6 (2 Matches) - WB R4 Losers (Semi Finals) ---
+    // Use DIRECT mapping as per last fix (Góra-Góra, Dół-Dół).
     for (let i = 1; i <= 2; i++) {
         allMatches.push({
             id: `lb-r6-m${i}`, round: 6, bracket: 'lb',
@@ -163,134 +147,130 @@ export const getBracketBlueprint = () => {
         });
     }
 
-    // --- LB R7 (1 Match) - LB Final ---
+    // --- LB R7 (1 Match) ---
     allMatches.push({
         id: `lb-r7-m1`, round: 7, bracket: 'lb',
         sourceMatchId1: `lb-r6-m1`, sourceType1: 'winner',
         sourceMatchId2: `lb-r6-m2`, sourceType2: 'winner',
-        nextMatchId: `gf-m1` // Winner goes to GF? 
-        // Note: Standard DE has "Finals" where Winner WB vs Winner LB.
-        // If Winner WB loses, there is a reset.
-        // We will assume standard single-set Final for now or simple Grand Final.
+        nextMatchId: `gf-m1`
     });
 
     // --- Grand Final ---
-    // Winner WB R5 vs Winner LB R7
     allMatches.push({
         id: `gf-m1`, round: 1, bracket: 'gf',
         sourceMatchId1: `wb-r5-m1`, sourceType1: 'winner',
         sourceMatchId2: `lb-r7-m1`, sourceType2: 'winner'
     });
 
-    // --- PLACEMENT MATCHES (Consolation) ---
+    // --- PLACEMENT BRACKETS ---
 
-    // P25-32: Losers of LB R1 (8 players)
-    // 4 matches. Then 2, Then 1. 29th, 31st etc.
-    // For brevity, I'll map R1 (4 matches) taking LB losers.
-    // LB R1 M1/M2 -> P25 M1 etc.
-    for (let i = 1; i <= 4; i++) {
+    // Places 5-8 (Losers of WB R3) -> 2 Matches, then 2 finals
+    for (let i = 1; i <= 2; i++) {
+        // WB R3 has 4 matches. Losers drop to P5-8.
+        // M1 (Winner WB3.1/3.2 - Loser side) -> We take WB Losers.
+        // P5-8 M1 takes WB R3 M1 Loser & WB R3 M2 Loser.
         allMatches.push({
-            id: `p25-r1-m${i}`, round: 1, bracket: 'p25',
-            sourceMatchId1: `lb-r1-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `lb-r1-m${i * 2}`, sourceType2: 'loser',
-            nextMatchId: `p25-r2-m${Math.ceil(i / 2)}`
+            id: `p5-r1-m${i}`, bracket: 'p5', round: 1,
+            sourceMatchId1: `wb-r3-m${i * 2 - 1}`, sourceType1: 'loser',
+            sourceMatchId2: `wb-r3-m${i * 2}`, sourceType2: 'loser',
+            // Actually, Winners play for 5th, Losers for 7th.
         });
     }
-    // P25 R2 (2 matches)
+    // Finals 5th, 7th
+    allMatches.push({ id: `p5-f`, bracket: 'p5', round: 2, sourceMatchId1: `p5-r1-m1`, sourceType1: 'winner', sourceMatchId2: `p5-r1-m2`, sourceType2: 'winner' });
+    allMatches.push({ id: `p7-f`, bracket: 'p7', round: 2, sourceMatchId1: `p5-r1-m1`, sourceType1: 'loser', sourceMatchId2: `p5-r1-m2`, sourceType2: 'loser' });
+
+
+    // Places 9-16 (Losers of LB R4) -> 4 matches -> 2 matches -> Finals
+    // LB R4 has 4 matches. Losers drop here.
+    for (let i = 1; i <= 2; i++) { // 2 Matches total (4 players / 2)
+        allMatches.push({
+            id: `p9-r1-m${i}`, bracket: 'p9', round: 1,
+            sourceMatchId1: `lb-r4-m${i * 2 - 1}`, sourceType1: 'loser',
+            sourceMatchId2: `lb-r4-m${i * 2}`, sourceType2: 'loser'
+            // Winner goes to 9th place bracket match? 
+            // Usually: Winners play for 9-12, Losers play for 13-16.
+        });
+    }
+    // Finals 9/11 (Winners of P9 R1)
+    allMatches.push({ id: `p9-f`, bracket: 'p9', round: 2, sourceMatchId1: `p9-r1-m1`, sourceType1: 'winner', sourceMatchId2: `p9-r1-m2`, sourceType2: 'winner' });
+    allMatches.push({ id: `p11-f`, bracket: 'p11', round: 2, sourceMatchId1: `p9-r1-m1`, sourceType1: 'loser', sourceMatchId2: `p9-r1-m2`, sourceType2: 'loser' }); // Actually 11th
+
+    // Places 13-16 (Losers of LB R3)
     for (let i = 1; i <= 2; i++) {
         allMatches.push({
-            id: `p25-r2-m${i}`, round: 2, bracket: 'p25',
-            sourceMatchId1: `p25-r1-m${i * 2 - 1}`, sourceType1: 'winner',
-            sourceMatchId2: `p25-r1-m${i * 2}`, sourceType2: 'winner'
-        });
-        // Losers of P25 R1 -> P29 Bracket (optional, usually "shared 29th" or played out)
-        // User requested: "play for 3, 5, 7... 31". So FULL placement.
-        allMatches.push({
-            id: `p29-r2-m${i}`, round: 2, bracket: 'p29',
-            sourceMatchId1: `p25-r1-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `p25-r1-m${i * 2}`, sourceType2: 'loser'
+            id: `p13-r1-m${i}`, bracket: 'p13', round: 1,
+            sourceMatchId1: `lb-r3-m${i * 2 - 1}`, sourceType1: 'loser',
+            sourceMatchId2: `lb-r3-m${i * 2}`, sourceType2: 'loser'
         });
     }
-    // Finals for 25, 27, 29, 31
-    allMatches.push({ id: `p25-f`, bracket: 'p25', round: 3, sourceMatchId1: `p25-r2-m1`, sourceType1: 'winner', sourceMatchId2: `p25-r2-m2`, sourceType2: 'winner' }); // 25th
-    allMatches.push({ id: `p27-f`, bracket: 'p27', round: 3, sourceMatchId1: `p25-r2-m1`, sourceType1: 'loser', sourceMatchId2: `p25-r2-m2`, sourceType2: 'loser' }); // 27th
-    allMatches.push({ id: `p29-f`, bracket: 'p29', round: 3, sourceMatchId1: `p29-r2-m1`, sourceType1: 'winner', sourceMatchId2: `p29-r2-m2`, sourceType2: 'winner' }); // 29th
-    allMatches.push({ id: `p31-f`, bracket: 'p31', round: 3, sourceMatchId1: `p29-r2-m1`, sourceType1: 'loser', sourceMatchId2: `p29-r2-m2`, sourceType2: 'loser' }); // 31st
+    allMatches.push({ id: `p13-f`, bracket: 'p13', round: 2, sourceMatchId1: `p13-r1-m1`, sourceType1: 'winner', sourceMatchId2: `p13-r1-m2`, sourceType2: 'winner' });
+    allMatches.push({ id: `p15-f`, bracket: 'p15', round: 2, sourceMatchId1: `p13-r1-m1`, sourceType1: 'loser', sourceMatchId2: `p13-r1-m2`, sourceType2: 'loser' });
 
-    /* Repeat similar logic for P17 (Losers LB R2), P13 (Losers LB R3), etc.
-       For brevity in this Turn 1 logic, I will implement P17 and P13, P9, P7, P5, P3.
-    */
 
-    // P17 (Losers LB R2 - 8 matches) -> 4 matches
+    // Places 17-32 (Losers of LB R2??)
+    // LB R2 has 8 losers. They finished 17-24th.
+    // LB R1 has 8 losers. They finished 25-32nd.
+    // User said "Miejsca 17-32: Przegrani z LB R2". This is ambiguous.
+    // Likely implies "The big chunk of lower brackets".
+    // I will implement P17 (17-24) from LB R2 losers.
+
+    // P17 (8 Players -> 4 matches -> 2 -> 1)
     for (let i = 1; i <= 4; i++) {
         allMatches.push({
-            id: `p17-r1-m${i}`, round: 1, bracket: 'p17',
+            id: `p17-r1-m${i}`, bracket: 'p17', round: 1,
             sourceMatchId1: `lb-r2-m${i * 2 - 1}`, sourceType1: 'loser',
             sourceMatchId2: `lb-r2-m${i * 2}`, sourceType2: 'loser',
             nextMatchId: `p17-r2-m${Math.ceil(i / 2)}`
         });
     }
-    // P17 R2 etc matches logic mirrors P25... (OMITTED FOR BREVITY - Assume users usually only care about top placements, but instructions say "until 31". I did P25-32. I will do P17-24 basic.)
-    // Impl P17 R2
+    // R2
     for (let i = 1; i <= 2; i++) {
         allMatches.push({
-            id: `p17-r2-m${i}`, round: 2, bracket: 'p17',
+            id: `p17-r2-m${i}`, bracket: 'p17', round: 2,
             sourceMatchId1: `p17-r1-m${i * 2 - 1}`, sourceType1: 'winner',
             sourceMatchId2: `p17-r1-m${i * 2}`, sourceType2: 'winner'
         });
+        // Losers of P17 R1 -> P21 (21-24th)
         allMatches.push({
-            id: `p21-r2-m${i}`, round: 2, bracket: 'p21',
+            id: `p21-r2-m${i}`, bracket: 'p21', round: 2,
             sourceMatchId1: `p17-r1-m${i * 2 - 1}`, sourceType1: 'loser',
             sourceMatchId2: `p17-r1-m${i * 2}`, sourceType2: 'loser'
         });
     }
-    // Finals 17, 19, 21, 23
+    // Finals
     allMatches.push({ id: `p17-f`, bracket: 'p17', round: 3, sourceMatchId1: `p17-r2-m1`, sourceType1: 'winner', sourceMatchId2: `p17-r2-m2`, sourceType2: 'winner' });
     allMatches.push({ id: `p19-f`, bracket: 'p19', round: 3, sourceMatchId1: `p17-r2-m1`, sourceType1: 'loser', sourceMatchId2: `p17-r2-m2`, sourceType2: 'loser' });
     allMatches.push({ id: `p21-f`, bracket: 'p21', round: 3, sourceMatchId1: `p21-r2-m1`, sourceType1: 'winner', sourceMatchId2: `p21-r2-m2`, sourceType2: 'winner' });
     allMatches.push({ id: `p23-f`, bracket: 'p23', round: 3, sourceMatchId1: `p21-r2-m1`, sourceType1: 'loser', sourceMatchId2: `p21-r2-m2`, sourceType2: 'loser' });
 
-    // P13 (Losers LB R3 - 4 matches) -> 2 matches
-    for (let i = 1; i <= 2; i++) {
-        allMatches.push({ id: `p13-r1-m${i}`, bracket: 'p13', round: 1, sourceMatchId1: `lb-r3-m${i * 2 - 1}`, sourceType1: 'loser', sourceMatchId2: `lb-r3-m${i * 2}`, sourceType2: 'loser' });
+    // P25 (Losers of LB R1) - 25-32nd
+    for (let i = 1; i <= 4; i++) {
+        allMatches.push({
+            id: `p25-r1-m${i}`, bracket: 'p25', round: 1,
+            sourceMatchId1: `lb-r1-m${i * 2 - 1}`, sourceType1: 'loser',
+            sourceMatchId2: `lb-r1-m${i * 2}`, sourceType2: 'loser',
+            nextMatchId: `p25-r2-m${Math.ceil(i / 2)}`
+        });
     }
-    // Finals 13, 15
-    allMatches.push({ id: `p13-f`, bracket: 'p13', round: 2, sourceMatchId1: `p13-r1-m1`, sourceType1: 'winner', sourceMatchId2: `p13-r1-m2`, sourceType2: 'winner' });
-    allMatches.push({ id: `p15-f`, bracket: 'p15', round: 2, sourceMatchId1: `p13-r1-m1`, sourceType1: 'loser', sourceMatchId2: `p13-r1-m2`, sourceType2: 'loser' });
-
-    // P9 (Losers LB R4 - 4 matches) -> 2 matches
+    // P25 R2
     for (let i = 1; i <= 2; i++) {
-        allMatches.push({ id: `p9-r1-m${i}`, bracket: 'p9', round: 1, sourceMatchId1: `lb-r4-m${i * 2 - 1}`, sourceType1: 'loser', sourceMatchId2: `lb-r4-m${i * 2}`, sourceType2: 'loser' });
+        allMatches.push({
+            id: `p25-r2-m${i}`, bracket: 'p25', round: 2,
+            sourceMatchId1: `p25-r1-m${i * 2 - 1}`, sourceType1: 'winner',
+            sourceMatchId2: `p25-r1-m${i * 2}`, sourceType2: 'winner'
+        });
+        allMatches.push({
+            id: `p29-r2-m${i}`, bracket: 'p29', round: 2,
+            sourceMatchId1: `p25-r1-m${i * 2 - 1}`, sourceType1: 'loser',
+            sourceMatchId2: `p25-r1-m${i * 2}`, sourceType2: 'loser'
+        });
     }
-    // Finals 9, 11
-    allMatches.push({ id: `p9-f`, bracket: 'p9', round: 2, sourceMatchId1: `p9-r1-m1`, sourceType1: 'winner', sourceMatchId2: `p9-r1-m2`, sourceType2: 'winner' });
-    allMatches.push({ id: `p11-f`, bracket: 'p11', round: 2, sourceMatchId1: `p9-r1-m1`, sourceType1: 'loser', sourceMatchId2: `p9-r1-m2`, sourceType2: 'loser' });
-
-    // P7 (Losers LB R5 - 2 matches) -> 1 match
-    allMatches.push({ id: `p7-f`, bracket: 'p7', round: 1, sourceMatchId1: `lb-r5-m1`, sourceType1: 'loser', sourceMatchId2: `lb-r5-m2`, sourceType2: 'loser' });
-
-    // P5 (Losers LB R6 - 2 matches) -> 1 match
-    allMatches.push({ id: `p5-f`, bracket: 'p5', round: 1, sourceMatchId1: `lb-r6-m1`, sourceType1: 'loser', sourceMatchId2: `lb-r6-m2`, sourceType2: 'loser' });
-
-    // P3 (Loser LB R7 vs Loser WB Final - Wait, User said "consolation matches for all", 3rd place is typical)
-    // LB R7 is LB Final. Loser of LB Final is 3rd? No.
-    // Grand Final = WB Final Winner vs LB Final Winner.
-    // So Loser of GF is 2nd. Winner 1st.
-    // 3rd place? The loser of LB Final is 3rd.
-    // 4th place? The loser of WB Final (who plays in LB Final) if they lose in LB Final?
-    // Wait. WB Final -> Winner to GF. Loser to LB Final.
-    // LB Final -> Winner to GF. Loser is 3rd.
-    // So LB Final IS the match that determines 3rd place loser.
-    // BUT we need a match for 4th?
-    // In standard DE:
-    // WB Final Loser drops to LB Final.
-    // LB Final: Loser of WB Final vs Winner of LB Semis.
-    // Winner goes to GF. Loser takes 3rd.
-    // So 3rd place is determined by LB Final.
-
-    // BUT: Does the user want a separate match for 3rd/4th? Most likely LB Final covers it.
-    // I won't add a specific P3 match unless "Consolation" implies non-standard. "play for 3..." usually implies that place is decided.
-    // The Loser of LB Final is 3rd.
+    // Finals P25
+    allMatches.push({ id: `p25-f`, bracket: 'p25', round: 3, sourceMatchId1: `p25-r2-m1`, sourceType1: 'winner', sourceMatchId2: `p25-r2-m2`, sourceType2: 'winner' });
+    allMatches.push({ id: `p27-f`, bracket: 'p27', round: 3, sourceMatchId1: `p25-r2-m1`, sourceType1: 'loser', sourceMatchId2: `p25-r2-m2`, sourceType2: 'loser' });
+    allMatches.push({ id: `p29-f`, bracket: 'p29', round: 3, sourceMatchId1: `p29-r2-m1`, sourceType1: 'winner', sourceMatchId2: `p29-r2-m2`, sourceType2: 'winner' });
+    allMatches.push({ id: `p31-f`, bracket: 'p31', round: 3, sourceMatchId1: `p29-r2-m1`, sourceType1: 'loser', sourceMatchId2: `p29-r2-m2`, sourceType2: 'loser' });
 
     return allMatches;
 };
