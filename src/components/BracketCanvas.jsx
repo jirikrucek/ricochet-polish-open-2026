@@ -196,7 +196,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                                     {displayText}
                                 </span>
                                 <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem' }}>
-                                    {showScore ? (row.s ?? 0) : ''}
+                                    {showScore ? (Number(row.s) || 0) : ''}
                                 </span>
                             </div>
                         );

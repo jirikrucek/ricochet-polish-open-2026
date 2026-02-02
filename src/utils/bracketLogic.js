@@ -75,21 +75,16 @@ export const getBracketBlueprint = () => {
     });
 
 
-    // --- LB R1 (8 Matches) - WB R1 Losers (FULL MIRROR INVERSION) ---
+    // --- LB R1 (8 Matches) - WB R1 Losers (HARDCODED VISUAL MIRROR) ---
     // User Requirement:
-    // Mecz A (1) -> h1 (8)
-    // Mecz P (16) -> a1 (1)
-    // Mecz B (2) -> g1 (7)
-    // Mecz O (15) -> b1 (2)
-    // Formula derived:
-    // LB Match i takes:
-    // Source 1: WB Match (17 - i)  [Outer Mirror: 16, 15... 9]
-    // Source 2: WB Match (9 - i)   [Inner Mirror: 8, 7... 1]
+    // LB Match 1 (top) takes WB Match 16 (bottom) and WB Match 1 (top)
+    // LB Match 2 (below) takes WB Match 15 (Zaborowska) and WB Match 2
+    // Pattern: LB M(i) takes WB M(17-i) and WB M(i)
     for (let i = 1; i <= 8; i++) {
         allMatches.push({
             id: `lb-r1-m${i}`, round: 1, bracket: 'lb',
             sourceMatchId1: `wb-r1-m${17 - i}`, sourceType1: 'loser',
-            sourceMatchId2: `wb-r1-m${9 - i}`, sourceType2: 'loser',
+            sourceMatchId2: `wb-r1-m${i}`, sourceType2: 'loser',
             nextMatchId: `lb-r2-m${i}`
         });
     }
