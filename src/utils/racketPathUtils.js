@@ -21,7 +21,13 @@ export const RACKET_COLORS = [
  * Deterministically generates a color for any match ID.
  */
 export const getMatchColor = (matchId) => {
-    if (!matchId) return '#6b7280'; // gray default
+    if (!matchId) return '#6b7280';
+    if (matchId.startsWith('wb')) return '#ec4899'; // Pink
+    if (matchId.startsWith('lb')) return '#3b82f6'; // Blue
+    if (matchId.startsWith('gf')) return '#fbbf24'; // Gold
+    if (matchId.startsWith('p')) return '#a8a29e'; // Gray/Stone for placement
+
+    // Fallback hash
     let hash = 0;
     for (let i = 0; i < matchId.length; i++) {
         hash = matchId.charCodeAt(i) + ((hash << 5) - hash);
