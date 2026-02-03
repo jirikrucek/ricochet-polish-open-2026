@@ -129,34 +129,91 @@ export const MatchesProvider = ({ children }) => {
         }
 
         // 1. OPTIMISTIC UPDATE
-        // This makes the UI instant across all components using this context
         setMatches(newMatches);
 
         // 2. PERSISTENCE
         if (isFirebaseConfigured && isAuthenticated) {
 
             try {
-                // Optimization: Only save changes? 
-                // For now, we aggressive save all provided matches to ensure consistency
-                // Note: Ideally we should only update changed docs, but bulk set is safe for < 100 docs
+                const { setDoc, updateDoc } = await import('firebase/firestore');
 
-                const { setDoc } = await import('firebase/firestore');
+                // Identify changed matches to avoid spamming 100+ writes
+                // We compare newMatches against the PREVIOUS state (matches) 
+                // But since setState is async and we are inside useCallback, 'matches' might be stale?
+                // Actually 'matches' is not in dependency array to avoid loop. 
+                // However, the caller usually passes the full new state.
+                // Let's rely on finding which match triggered this? 
+                // Ideally, the caller should pass "changedMatchId". 
+                // But for now, let's just diff against memory (expensive but safer than spamming DB)
+
+                // Better approach: Just look for the match that has changed timestamp? No timestamp yet.
+                // Let's filter by checking which match differs from 'matches' state?
+                // But 'matches' in scope is closure-captured from render? 
+                // The dependency array has [isAuthenticated, activeTournamentId, lsKey]. 
+                // So 'matches' is NOT in scope correctly! 
+
+                // FIX: use functional update logic or just assume the Caller sent us a modified list?
+                // Since we don't have the old list reliably to diff here without adding it to dependency...
+                // We will try to rely on a 'Diff' helper or just save valid matches.
+
+                // CRITICAL FIX requested: "Find only the one specific match".
+                // Since we don't know which one changed, we need to be smart.
+                // But wait, the user said "Save only one, specific match". 
+                // We can't know which one unless we diff.
+
+                // Let's use a simple diff by ID match.
+                // We need to access the 'current' matches to diff. 
+                // We can use a ref or just... 
+
+                // Simpler: The caller (updateBracketMatch) returns a NEW array referencing SAME objects for unchanged.
+                // We can check strict equality reference!
+
+                const changedMatches = [];
+                // We need the PREVIOUS matches to compare.
+                // setMatches(prev => ...) gives us prev, but we can't access it outside.
+
+                // HACK: Use a Ref to store previous matches for Diffing
+                // But we define Ref outside.
+
+                // ALERT: To strictly follow instruction "Find the function... must save only one specific match",
+                // we should change the signature of saveMatches to accept (newMatches, changedMatchId)
+                // But that requires changing callers. 
+
+                // ALTERNATIVE: Diff against the state variable 'matches' which IS available in scope if we add it to deps?
+                // No, that causes cycles.
+
+                // Let's assume we simply iterate and check if it looks 'active' or 'just modified'? No.
+
+                // Let's implement the DIFF logic using the injected 'matches' from scope 
+                // (we need to add 'matches' to dependency for this logic to work, but proceed with caution).
+                // Actually, let's use a Mutable Ref to keep track of "last saved state".
+
                 const payload = newMatches.map(m => mapToSnake(m));
 
-                // Optimization: Parallel Write
-                const promises = payload.map(match => {
-                    if (!match.id) return Promise.resolve();
+                const changesToSave = payload.filter(p => {
+                    // Primitive diff: Find existing match in CURRENT 'matches' state
+                    const old = matches.find(m => m.id === p.id);
+                    if (!old) return true; // New match
 
-                    // DIRECT BYPASS LOGGING
-                    console.log("DEBUG: Sending to Firestore:", match.id, match);
+                    // Compare critical fields
+                    const oldSnake = mapToSnake(old);
+                    return JSON.stringify(oldSnake) !== JSON.stringify(p);
+                });
 
+                if (changesToSave.length === 0) {
+                    // Fallback: If for some reason diff failed (e.g. references broken), save all?
+                    // No, if 0 changes detected, maybe we just save nothing?
+                    // But to be safe vs bugs, if we can't detect, we log warning.
+                    // console.log("No changes detected via Diff.");
+                    return;
+                }
+
+                const promises = changesToSave.map(match => {
+                    console.log("DEBUG: Sending SINGLE match to Firestore:", match.id, match);
                     const docRef = doc(db, "matches", match.id);
-                    // Force using setDoc directly without conditions
                     return setDoc(docRef, match);
                 });
 
-                // Fire and forget? or await?
-                // Awaiting ensures we catch errors, but UI is already updated.
                 Promise.all(promises).catch(err => console.error("Async Save Error:", err));
 
             } catch (e) {
@@ -166,7 +223,7 @@ export const MatchesProvider = ({ children }) => {
             // LS
             localStorage.setItem(lsKey, JSON.stringify(newMatches));
         }
-    }, [isAuthenticated, activeTournamentId, lsKey]);
+    }, [isAuthenticated, activeTournamentId, lsKey, matches]); // Added matches to deps for Diffing
 
     return (
         <MatchesContext.Provider value={{ matches, saveMatches, resetMatches, isSaving }}>
