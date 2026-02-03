@@ -102,6 +102,11 @@ export const MatchesProvider = ({ children }) => {
         };
     }, [activeTournamentId, lsKey]);
 
+    const matchesRef = useRef(matches);
+    useEffect(() => {
+        matchesRef.current = matches;
+    }, [matches]);
+
     // --- ACTIONS ---
     const resetMatches = async () => {
         if (!isAuthenticated || !activeTournamentId || !isFirebaseConfigured) return;
@@ -140,7 +145,7 @@ export const MatchesProvider = ({ children }) => {
                 let changesToSave = [];
 
                 if (specificMatchId) {
-                    console.log("DEBUG: Target Save for Match ID:", specificMatchId);
+                    // console.log("DEBUG: Target Save for Match ID:", specificMatchId); 
                     const target = newMatches.find(m => m.id === specificMatchId);
                     if (target) {
                         changesToSave = [mapToSnake(target)];
@@ -148,10 +153,11 @@ export const MatchesProvider = ({ children }) => {
                         console.warn("DEBUG: Target match not found in new state!", specificMatchId);
                     }
                 } else {
-                    // Fallback to Diff Logic or Bulk Save
+                    // Fallback to Diff Logic using Ref to avoid dependency cycle
+                    const currentMatches = matchesRef.current;
                     const payload = newMatches.map(m => mapToSnake(m));
                     changesToSave = payload.filter(p => {
-                        const old = matches.find(m => m.id === p.id);
+                        const old = currentMatches.find(m => m.id === p.id);
                         if (!old) return true;
                         const oldSnake = mapToSnake(old);
                         return JSON.stringify(oldSnake) !== JSON.stringify(p);
@@ -159,12 +165,11 @@ export const MatchesProvider = ({ children }) => {
                 }
 
                 if (changesToSave.length === 0) {
-                    // console.log("No changes detected.");
                     return;
                 }
 
                 const promises = changesToSave.map(match => {
-                    console.log("DEBUG: Sending SINGLE match to Firestore:", match.id, match);
+                    console.log("DEBUG: Sending SINGLE match to Firestore:", match.id);
                     const docRef = doc(db, "matches", match.id);
                     return setDoc(docRef, match);
                 });
@@ -178,7 +183,7 @@ export const MatchesProvider = ({ children }) => {
             // LS
             localStorage.setItem(lsKey, JSON.stringify(newMatches));
         }
-    }, [isAuthenticated, activeTournamentId, lsKey, matches]); // Added matches to deps for Diffing
+    }, [isAuthenticated, activeTournamentId, lsKey]); // Removed matches from deps
 
     return (
         <MatchesContext.Provider value={{ matches, saveMatches, resetMatches, isSaving }}>
