@@ -7,6 +7,12 @@
     padding-bottom: 4rem;
     position: relative;
     min-height: 100vh;
+
+    /* Background Image */
+    background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.8)), url('/tlo.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
 
 .live-container.tv-mode {
