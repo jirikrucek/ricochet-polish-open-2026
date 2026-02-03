@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMatches } from '../hooks/useMatches';
 import { useTournament } from '../contexts/TournamentContext';
@@ -65,42 +65,67 @@ const MatchEditModal = ({ match, onClose, onSave, onClear }) => {
         }));
     };
 
-    const handleSave = (e) => {
-        e.preventDefault();
-        if (score1 > winThreshold || score2 > winThreshold) {
-            alert(`Max sets for BO${bestOf} is ${winThreshold}!`);
-            return;
-        }
-        if (microPoints.some(p => p.a < 0 || p.b < 0)) {
-            alert("Micro points cannot be negative.");
-            return;
-        }
+    // Ref for mount check to avoid initial save on render
+    const isMounted = useRef(false);
 
-        // Logic check for auto-completion
+    // Reusable Payload Generator
+    const getSavePayload = () => {
+        const s1 = parseInt(score1) || 0;
+        const s2 = parseInt(score2) || 0;
+
         let finalStatus = status;
         let winnerId = match.winnerId;
 
         // Auto-detect finish condition (Strict)
-        if (score1 >= winThreshold) {
+        if (s1 >= winThreshold) {
             finalStatus = 'finished';
             winnerId = match.player1.id;
-        } else if (score2 >= winThreshold) {
+        } else if (s2 >= winThreshold) {
             finalStatus = 'finished';
             winnerId = match.player2.id;
         } else {
-            // Force active if threshold not met, regardless of what user tried to select as status
-            finalStatus = 'live';
-            winnerId = null;
+            // If manual status is finished but thresholds not met, try to infer winner or revert to live
+            if (status === 'finished') {
+                if (s1 > s2) winnerId = match.player1.id;
+                else if (s2 > s1) winnerId = match.player2.id;
+                else {
+                    finalStatus = 'live';
+                    winnerId = null;
+                }
+            } else {
+                finalStatus = 'live';
+                winnerId = null;
+            }
         }
 
-        onSave(match.id, {
-            score1: parseInt(score1),
-            score2: parseInt(score2),
+        return {
+            score1: s1,
+            score2: s2,
             microPoints: microPoints,
             forceFinished: finalStatus === 'finished',
             court: court,
-            winnerId: winnerId // Pass winner explicit if logic determined it
-        });
+            winnerId: winnerId
+        };
+    };
+
+    // AGGRESSIVE AUTO-SAVE EFFECT
+    useEffect(() => {
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+
+        // Debounce to avoid write-spam on rapid input
+        const timer = setTimeout(() => {
+            onSave(match.id, getSavePayload(), { autoSave: true });
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [score1, score2, microPoints, status, court]);
+
+    const handleSave = (e) => {
+        e.preventDefault();
+        onSave(match.id, getSavePayload(), { autoSave: false });
     };
 
     const handleClear = () => {
@@ -262,7 +287,7 @@ const Matches = () => {
         return { current, pending, finished, all: [...pending, ...finished] };
     }, [matches, players]);
 
-    const handleSaveScore = (matchId, data) => {
+    const handleSaveScore = (matchId, data, options = {}) => {
         // Update local state is tricky because useMatches holds raw data.
         // We calculate next state using util.
         const status = data.forceFinished ? 'finished' : 'live';
@@ -279,7 +304,11 @@ const Matches = () => {
         });
 
         saveMatches(finalState);
-        setEditingMatch(null);
+
+        // Close modal only if manual save
+        if (!options.autoSave) {
+            setEditingMatch(null);
+        }
     };
 
     const handleClearScore = (matchId) => {
