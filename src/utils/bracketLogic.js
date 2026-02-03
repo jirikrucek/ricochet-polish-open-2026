@@ -4,7 +4,6 @@
 // --------------------------------------------------------------------------
 
 // 1. Seeding Order (Standard 32-player snake/standard spread)
-// [Seed1, Seed2] for the 16 matches in WB Round 1
 const SEEDING_PAIRS = [
     [1, 32],   // wb-r1-m1
     [16, 17],  // wb-r1-m2
@@ -35,230 +34,191 @@ const mkMatch = (id, bracket, round, extras = {}) => ({
     ...extras
 });
 
+// STRICT BRAZILIAN MAPPING LOGIC (v15)
+// Definitive source of truth for drops
+const getTargetDropId = (sourceId) => {
+    // Parse ID: e.g. wb-r1-m1
+    const parts = sourceId.split('-');
+    if (parts.length < 3 || parts[0] !== 'wb') return null;
+
+    const r = parseInt(parts[1].replace('r', ''), 10);
+    const m = parseInt(parts[2].replace('m', ''), 10);
+
+    // MAPPING RULES
+
+    // 1. WB R1 -> LB R1 (Neighbor)
+    // m1, m2 -> lb-r1-m1 ... m15, m16 -> lb-r1-m8
+    if (r === 1) {
+        return `lb-r1-m${Math.ceil(m / 2)}`;
+    }
+
+    // 2. WB R2 -> LB R2 (DIAGONAL DROP - KLUCZOWE)
+    // Formula: 9 - m
+    if (r === 2) {
+        return `lb-r2-m${9 - m}`;
+    }
+
+    // 3. WB R3 -> LB R4 (CROSS)
+    // Pairs: 1<->2, 3<->4
+    if (r === 3) {
+        if (m === 1) return 'lb-r4-m2';
+        if (m === 2) return 'lb-r4-m1';
+        if (m === 3) return 'lb-r4-m4';
+        if (m === 4) return 'lb-r4-m3';
+    }
+
+    // 4. WB R4 -> LB R6 (CROSS)
+    // Pairs: 1<->2
+    if (r === 4) {
+        if (m === 1) return 'lb-r6-m2';
+        if (m === 2) return 'lb-r6-m1';
+    }
+
+    // WB R5 (Final) -> No drop (Grand Final winner is champion, loser is 2nd)
+    return null;
+};
+
 export const getBracketBlueprint = () => {
     const matches = [];
 
     // --- WINNERS BRACKET (WB) ---
     // R1 (16 matches)
     for (let i = 1; i <= 16; i++) {
-        matches.push(mkMatch(`wb-r1-m${i}`, 'wb', 1, {
+        const id = `wb-r1-m${i}`;
+        matches.push(mkMatch(id, 'wb', 1, {
             nextMatchId: `wb-r2-m${Math.ceil(i / 2)}`,
-            loserMatchId: `p17-r1-m${Math.ceil(i / 2)}` // Drops to 17-32 Bracket
+            loserMatchId: getTargetDropId(id)
         }));
     }
     // R2 (8 matches)
     for (let i = 1; i <= 8; i++) {
-        matches.push(mkMatch(`wb-r2-m${i}`, 'wb', 2, {
+        const id = `wb-r2-m${i}`;
+        matches.push(mkMatch(id, 'wb', 2, {
             sourceMatchId1: `wb-r1-m${i * 2 - 1}`, sourceType1: 'winner',
             sourceMatchId2: `wb-r1-m${i * 2}`, sourceType2: 'winner',
             nextMatchId: `wb-r3-m${Math.ceil(i / 2)}`,
-            loserMatchId: `p9-r1-m${Math.ceil(i / 2)}` // Drops to 9-16 Bracket
+            loserMatchId: getTargetDropId(id)
         }));
     }
     // R3 (4 matches) - Quarterfinals
     for (let i = 1; i <= 4; i++) {
-        matches.push(mkMatch(`wb-r3-m${i}`, 'wb', 3, {
+        const id = `wb-r3-m${i}`;
+        matches.push(mkMatch(id, 'wb', 3, {
             sourceMatchId1: `wb-r2-m${i * 2 - 1}`, sourceType1: 'winner',
             sourceMatchId2: `wb-r2-m${i * 2}`, sourceType2: 'winner',
             nextMatchId: `wb-r4-m${Math.ceil(i / 2)}`,
-            loserMatchId: `p5-r1-m${Math.ceil(i / 2)}` // Drops to 5-8 Bracket
+            loserMatchId: getTargetDropId(id)
         }));
     }
     // R4 (2 matches) - Semifinals
     for (let i = 1; i <= 2; i++) {
-        matches.push(mkMatch(`wb-r4-m${i}`, 'wb', 4, {
+        const id = `wb-r4-m${i}`;
+        matches.push(mkMatch(id, 'wb', 4, {
             sourceMatchId1: `wb-r3-m${i * 2 - 1}`, sourceType1: 'winner',
             sourceMatchId2: `wb-r3-m${i * 2}`, sourceType2: 'winner',
             nextMatchId: `wb-r5-m1`,
-            loserMatchId: `p3-f` // Drops to 3rd Place Match
+            loserMatchId: getTargetDropId(id)
         }));
     }
     // R5 (1 match) - Final
-    matches.push(mkMatch(`wb-r5-m1`, 'wb', 5, { // Main Final
+    matches.push(mkMatch(`wb-r5-m1`, 'wb', 5, {
         sourceMatchId1: `wb-r4-m1`, sourceType1: 'winner',
         sourceMatchId2: `wb-r4-m2`, sourceType2: 'winner'
     }));
 
+    // --- LOSERS BRACKET (LB) ---
 
-    // --- PLACEMENT 3rd (Bronze) ---
-    matches.push(mkMatch(`p3-f`, 'p3', 1, {
-        sourceMatchId1: `wb-r4-m1`, sourceType1: 'loser',
-        sourceMatchId2: `wb-r4-m2`, sourceType2: 'loser'
-    }));
+    // Reverse Map for "Source Pull" convenience (optional but good for consistency)
+    // We strictly use the getTargetDropId logic to verify, 
+    // but here we set sources for standard "Winner flows" too.
 
-    // --- PLACEMENT 5-8 SECTION ---
-    // R1 (Founding of 5-8): Fed by WB R3 Losers
-    for (let i = 1; i <= 2; i++) {
-        matches.push(mkMatch(`p5-r1-m${i}`, 'p5', 1, {
-            sourceMatchId1: `wb-r3-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `wb-r3-m${i * 2}`, sourceType2: 'loser',
-            nextMatchId: `p5-f`,       // Winner plays for 5th
-            loserMatchId: `p7-f`       // Loser plays for 7th
-        }));
-    }
-    // 5th Place
-    matches.push(mkMatch(`p5-f`, 'p5', 2, {
-        sourceMatchId1: `p5-r1-m1`, sourceType1: 'winner',
-        sourceMatchId2: `p5-r1-m2`, sourceType2: 'winner'
-    }));
-    // 7th Place
-    matches.push(mkMatch(`p7-f`, 'p5', 2, { // Technically p7 bracket but grouped in p5 logic often
-        sourceMatchId1: `p5-r1-m1`, sourceType1: 'loser',
-        sourceMatchId2: `p5-r1-m2`, sourceType2: 'loser'
-    }));
-
-    // --- PLACEMENT 9-16 SECTION ---
-    // R1: Fed by WB R2 Losers (8 players, 4 matches)
-    for (let i = 1; i <= 4; i++) {
-        matches.push(mkMatch(`p9-r1-m${i}`, 'p9', 1, {
-            sourceMatchId1: `wb-r2-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `wb-r2-m${i * 2}`, sourceType2: 'loser',
-            nextMatchId: `p9-r2-m${Math.ceil(i / 2)}`,  // Winner to 9-12 semis
-            loserMatchId: `p13-r1-m${Math.ceil(i / 2)}` // Loser to 13-16 semis
-        }));
-    }
-
-    // 9-12 Sub-bracket (Winners of p9-r1)
-    for (let i = 1; i <= 2; i++) {
-        matches.push(mkMatch(`p9-r2-m${i}`, 'p9', 2, {
-            sourceMatchId1: `p9-r1-m${i * 2 - 1}`, sourceType1: 'winner',
-            sourceMatchId2: `p9-r1-m${i * 2}`, sourceType2: 'winner',
-            nextMatchId: `p9-f`,
-            loserMatchId: `p11-f`
-        }));
-    }
-    matches.push(mkMatch(`p9-f`, 'p9', 3, { // 9th Place
-        sourceMatchId1: `p9-r2-m1`, sourceType1: 'winner',
-        sourceMatchId2: `p9-r2-m2`, sourceType2: 'winner'
-    }));
-    matches.push(mkMatch(`p11-f`, 'p9', 3, { // 11th Place
-        sourceMatchId1: `p9-r2-m1`, sourceType1: 'loser',
-        sourceMatchId2: `p9-r2-m2`, sourceType2: 'loser'
-    }));
-
-    // 13-16 Sub-bracket (Losers of p9-r1)
-    for (let i = 1; i <= 2; i++) {
-        matches.push(mkMatch(`p13-r1-m${i}`, 'p13', 1, { // Note: round 1 of this sub-bracket
-            sourceMatchId1: `p9-r1-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `p9-r1-m${i * 2}`, sourceType2: 'loser',
-            nextMatchId: `p13-f`,
-            loserMatchId: `p15-f`
-        }));
-    }
-    matches.push(mkMatch(`p13-f`, 'p13', 2, { // 13th Place
-        sourceMatchId1: `p13-r1-m1`, sourceType1: 'winner',
-        sourceMatchId2: `p13-r1-m2`, sourceType2: 'winner'
-    }));
-    matches.push(mkMatch(`p15-f`, 'p13', 2, { // 15th Place
-        sourceMatchId1: `p13-r1-m1`, sourceType1: 'loser',
-        sourceMatchId2: `p13-r1-m2`, sourceType2: 'loser'
-    }));
-
-    // --- PLACEMENT 17-32 SECTION ---
-    // R1: Fed by WB R1 Losers (16 players, 8 matches)
+    // LB R1 (8 matches): Fed by WB R1 Losers
     for (let i = 1; i <= 8; i++) {
-        matches.push(mkMatch(`p17-r1-m${i}`, 'p17', 1, {
+        matches.push(mkMatch(`lb-r1-m${i}`, 'lb', 1, {
             sourceMatchId1: `wb-r1-m${i * 2 - 1}`, sourceType1: 'loser',
             sourceMatchId2: `wb-r1-m${i * 2}`, sourceType2: 'loser',
-            nextMatchId: `p17-r2-m${Math.ceil(i / 2)}`,   // Winner to 17-24 path
-            loserMatchId: `p25-r1-m${Math.ceil(i / 2)}`   // Loser to 25-32 path
+            nextMatchId: `lb-r2-m${i}` // 1-to-1 feeding to R2 (waiting for WB R2 drops)
         }));
     }
 
-    // 17-24 Path (Winners of p17-r1)
-    for (let i = 1; i <= 4; i++) { // R2 of P17
-        matches.push(mkMatch(`p17-r2-m${i}`, 'p17', 2, {
-            sourceMatchId1: `p17-r1-m${i * 2 - 1}`, sourceType1: 'winner',
-            sourceMatchId2: `p17-r1-m${i * 2}`, sourceType2: 'winner',
-            nextMatchId: `p17-r3-m${Math.ceil(i / 2)}`, // Winner to 17-20
-            loserMatchId: `p21-r1-m${Math.ceil(i / 2)}` // Loser to 21-24
+    // LB R2 (8 matches): Fed by LB R1 Winners AND WB R2 Losers (Diagonal)
+    // We must find which WB R2 match drops here based on rules.
+    // Rule: wb-r2-mX drops to lb-r2-m(9-X)
+    // So lb-r2-mY receives wb-r2-m(9-Y)
+    for (let i = 1; i <= 8; i++) {
+        const wbSourceIndex = 9 - i;
+        matches.push(mkMatch(`lb-r2-m${i}`, 'lb', 2, {
+            sourceMatchId1: `lb-r1-m${i}`, sourceType1: 'winner',
+            sourceMatchId2: `wb-r2-m${wbSourceIndex}`, sourceType2: 'loser',
+            nextMatchId: `lb-r3-m${Math.ceil(i / 2)}`
         }));
     }
-    // 17-20 Path (Winners of p17-r2)
-    for (let i = 1; i <= 2; i++) { // R3 of P17
-        matches.push(mkMatch(`p17-r3-m${i}`, 'p17', 3, {
-            sourceMatchId1: `p17-r2-m${i * 2 - 1}`, sourceType1: 'winner',
-            sourceMatchId2: `p17-r2-m${i * 2}`, sourceType2: 'winner',
-            nextMatchId: `p17-f`,
-            loserMatchId: `p19-f`
-        }));
-    }
-    matches.push(mkMatch(`p17-f`, 'p17', 4, { // 17th Place
-        sourceMatchId1: `p17-r3-m1`, sourceType1: 'winner',
-        sourceMatchId2: `p17-r3-m2`, sourceType2: 'winner'
-    }));
-    matches.push(mkMatch(`p19-f`, 'p17', 4, { // 19th Place
-        sourceMatchId1: `p17-r3-m1`, sourceType1: 'loser',
-        sourceMatchId2: `p17-r3-m2`, sourceType2: 'loser'
-    }));
 
-    // 21-24 Path (Losers of p17-r2)
-    for (let i = 1; i <= 2; i++) {
-        matches.push(mkMatch(`p21-r1-m${i}`, 'p21', 1, {
-            sourceMatchId1: `p17-r2-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `p17-r2-m${i * 2}`, sourceType2: 'loser',
-            nextMatchId: `p21-f`,
-            loserMatchId: `p23-f`
-        }));
-    }
-    matches.push(mkMatch(`p21-f`, 'p21', 2, { // 21st Place
-        sourceMatchId1: `p21-r1-m1`, sourceType1: 'winner',
-        sourceMatchId2: `p21-r1-m2`, sourceType2: 'winner'
-    }));
-    matches.push(mkMatch(`p23-f`, 'p21', 2, { // 23rd Place
-        sourceMatchId1: `p21-r1-m1`, sourceType1: 'loser',
-        sourceMatchId2: `p21-r1-m2`, sourceType2: 'loser'
-    }));
-
-
-    // 25-32 Path (Losers of p17-r1)
-    // R1 for this group (4 matches)
+    // LB R3 (4 matches): Fed by LB R2 Winners
     for (let i = 1; i <= 4; i++) {
-        matches.push(mkMatch(`p25-r1-m${i}`, 'p25', 1, {
-            sourceMatchId1: `p17-r1-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `p17-r1-m${i * 2}`, sourceType2: 'loser',
-            nextMatchId: `p25-r2-m${Math.ceil(i / 2)}`,  // Winner to 25-28
-            loserMatchId: `p29-r1-m${Math.ceil(i / 2)}`  // Loser to 29-32
+        matches.push(mkMatch(`lb-r3-m${i}`, 'lb', 3, {
+            sourceMatchId1: `lb-r2-m${i * 2 - 1}`, sourceType1: 'winner',
+            sourceMatchId2: `lb-r2-m${i * 2}`, sourceType2: 'winner',
+            nextMatchId: `lb-r4-m${i}` // 1-to-1 feeding to R4 (waiting for WB R3 drops)
         }));
     }
-    // 25-28 Path (Winners of p25-r1)
+
+    // LB R4 (4 matches): Fed by LB R3 Winners AND WB R3 Losers (Cross)
+    // Rule: 1->2, 2->1, 3->4, 4->3
+    // Inverse: 2 from 1, 1 from 2, 4 from 3, 3 from 4
+    const getWbSourceR3 = (lbIdx) => {
+        if (lbIdx === 1) return 2;
+        if (lbIdx === 2) return 1;
+        if (lbIdx === 3) return 4;
+        if (lbIdx === 4) return 3;
+        return 0;
+    };
+    for (let i = 1; i <= 4; i++) {
+        matches.push(mkMatch(`lb-r4-m${i}`, 'lb', 4, {
+            sourceMatchId1: `lb-r3-m${i}`, sourceType1: 'winner',
+            sourceMatchId2: `wb-r3-m${getWbSourceR3(i)}`, sourceType2: 'loser',
+            nextMatchId: `lb-r5-m${Math.ceil(i / 2)}`
+        }));
+    }
+
+    // LB R5 (2 matches): Fed by LB R4 Winners
     for (let i = 1; i <= 2; i++) {
-        matches.push(mkMatch(`p25-r2-m${i}`, 'p25', 2, {
-            sourceMatchId1: `p25-r1-m${i * 2 - 1}`, sourceType1: 'winner',
-            sourceMatchId2: `p25-r1-m${i * 2}`, sourceType2: 'winner',
-            nextMatchId: `p25-f`,
-            loserMatchId: `p27-f`
+        matches.push(mkMatch(`lb-r5-m${i}`, 'lb', 5, {
+            sourceMatchId1: `lb-r4-m${i * 2 - 1}`, sourceType1: 'winner',
+            sourceMatchId2: `lb-r4-m${i * 2}`, sourceType2: 'winner',
+            nextMatchId: `lb-r6-m${i}` // 1-to-1 to R6 (waiting for WB R4 drops)
         }));
     }
-    matches.push(mkMatch(`p25-f`, 'p25', 3, { // 25th Place
-        sourceMatchId1: `p25-r2-m1`, sourceType1: 'winner',
-        sourceMatchId2: `p25-r2-m2`, sourceType2: 'winner'
-    }));
-    matches.push(mkMatch(`p27-f`, 'p27', 3, { // 27th Place
-        sourceMatchId1: `p25-r2-m1`, sourceType1: 'loser',
-        sourceMatchId2: `p25-r2-m2`, sourceType2: 'loser'
+
+    // LB R6 (2 matches): Fed by LB R5 Winners AND WB R4 Losers (Cross)
+    // Rule: 1->2, 2->1
+    const getWbSourceR4 = (lbIdx) => {
+        if (lbIdx === 1) return 2;
+        if (lbIdx === 2) return 1;
+        return 0;
+    };
+    for (let i = 1; i <= 2; i++) {
+        matches.push(mkMatch(`lb-r6-m${i}`, 'lb', 6, {
+            sourceMatchId1: `lb-r5-m${i}`, sourceType1: 'winner',
+            sourceMatchId2: `wb-r4-m${getWbSourceR4(i)}`, sourceType2: 'loser',
+            // Next match? Usually LB Final (R7)
+            nextMatchId: `lb-r7-m1`
+        }));
+    }
+
+    // LB R7 (1 match): Losers Final
+    matches.push(mkMatch(`lb-r7-m1`, 'lb', 7, {
+        sourceMatchId1: `lb-r6-m1`, sourceType1: 'winner',
+        sourceMatchId2: `lb-r6-m2`, sourceType2: 'winner'
+        // Winner usually goes to Grand Final, but let's leave it as terminal for LB view for now
     }));
 
-    // 29-32 Path (Losers of p25-r1)
-    for (let i = 1; i <= 2; i++) {
-        matches.push(mkMatch(`p29-r1-m${i}`, 'p29', 1, {
-            sourceMatchId1: `p25-r1-m${i * 2 - 1}`, sourceType1: 'loser',
-            sourceMatchId2: `p25-r1-m${i * 2}`, sourceType2: 'loser',
-            nextMatchId: `p29-f`,
-            loserMatchId: `p31-f`
-        }));
-    }
-    matches.push(mkMatch(`p29-f`, 'p29', 2, { // 29th Place
-        sourceMatchId1: `p29-r1-m1`, sourceType1: 'winner',
-        sourceMatchId2: `p29-r1-m2`, sourceType2: 'winner'
-    }));
-    matches.push(mkMatch(`p31-f`, 'p31', 2, { // 31st Place
-        sourceMatchId1: `p29-r1-m1`, sourceType1: 'loser',
-        sourceMatchId2: `p29-r1-m2`, sourceType2: 'loser'
-    }));
+    // --- PLACEMENT / EXTRA (Optional but good to keep clean) ---
+    // 3rd Place Match is essentially LB R7 in this structure.
 
     return matches;
 };
+
 
 // --------------------------------------------------------------------------
 // LOGIC: HYDRATION & UPDATES
@@ -275,7 +235,6 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
     // Fill to 32
     while (seeds.length < 32) seeds.push({ id: `bye-${seeds.length}`, full_name: "BYE", isBye: true });
 
-    // Map players
     const playerMap = new Map();
     seeds.forEach(p => playerMap.set(p.id, p));
 
@@ -292,40 +251,23 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
         if (seeds[seed2Idx - 1]) m.player2Id = seeds[seed2Idx - 1].id;
     });
 
-    // 4. Processing Order (Topological Sort approximation)
-    // We process WB 1->5, then generic placement rounds
-    const processingGroups = [
-        allMatches.filter(m => m.bracket === 'wb' && m.round === 1),
-        allMatches.filter(m => m.bracket === 'wb' && m.round > 1),
-        allMatches.filter(m => m.bracket !== 'wb') // Then everything else often resolves dynamically
-    ];
-    // Flatten
-    // Better to just loop multiple passes or use strict dependency checks, 
-    // but for this structure, we can just process all matches in id-order a few times or 
-    // rely on a robust single pass if ordered correctly. 
-    // Since our IDs imply dependency (R1->R2), sorting by Round helps.
-    // However, Drops go from WB R1 -> P17 R1.
-    // So WB R1 must be before P17 R1.
+    // 4. Processing Order
+    // WB Matches first, then LB
     const sortedMatches = [...allMatches].sort((a, b) => {
-        // WB First
         if (a.bracket === 'wb' && b.bracket !== 'wb') return -1;
         if (a.bracket !== 'wb' && b.bracket === 'wb') return 1;
-        // Then by Round
         return a.round - b.round;
     });
-
-    // We might need multi-pass for complex drops, but let's try a directed resolve
-    // Actually, just looping is safer.
 
     // 5. RESOLVE LOOP
     const resolve = () => {
         let changed = false;
         sortedMatches.forEach(match => {
-            // A. Resolve Parents
+            // A. STANDARD SOURCE PULL (Parent -> Child)
+            // Pull Winner/Loser based on sourceMatchId attributes
             if (match.sourceMatchId1 && !match.player1Id) {
                 const src = matchMap.get(match.sourceMatchId1);
                 if (src && src.winnerId && src.status === 'finished') {
-                    // Decide Winner vs Loser
                     const p = match.sourceType1 === 'winner' ? src.winnerId : (src.winnerId === src.player1Id ? src.player2Id : src.player1Id);
                     if (p && match.player1Id !== p) { match.player1Id = p; changed = true; }
                 }
@@ -338,7 +280,42 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
                 }
             }
 
-            // B. Apply Scores / Auto-Win
+            // B. STRICT MAPPING ENFORCEMENT (Push Logic Overrides)
+            // Check if this match is a WB match that just finished, and PUSH the loser to the specific target
+            if (match.bracket === 'wb' && match.status === 'finished' && match.winnerId) {
+                const loserId = match.winnerId === match.player1Id ? match.player2Id : match.player1Id;
+                const targetId = getTargetDropId(match.id);
+
+                if (loserId && targetId) {
+                    const targetMatch = matchMap.get(targetId);
+                    if (targetMatch) {
+                        // Determine which slot to fill. 
+                        // By convention and our blueprint:
+                        // LB R1: strictly mapped indices.
+                        // LB R2: Source2 is the drop.
+                        // LB R4: Source2 is the drop.
+                        // LB R6: Source2 is the drop.
+
+                        // We check if targetMatch expects this source
+                        let slot = 0;
+                        if (targetMatch.sourceMatchId1 === match.id) slot = 1;
+                        else if (targetMatch.sourceMatchId2 === match.id) slot = 2;
+
+                        // If blueprint doesn't match explicitly (should exclude this case if blueprint is perfect), 
+                        // we force it into empty slot or specific slot based on role.
+                        if (slot === 1 && targetMatch.player1Id !== loserId) {
+                            targetMatch.player1Id = loserId;
+                            changed = true;
+                        }
+                        if (slot === 2 && targetMatch.player2Id !== loserId) {
+                            targetMatch.player2Id = loserId;
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
+            // C. Apply Scores / Auto-Win
             const p1 = playerMap.get(match.player1Id);
             const p2 = playerMap.get(match.player2Id);
             const saved = existingMatchesMap[match.id];
@@ -363,9 +340,11 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
                 newState.microPoints = saved.micro_points || [];
                 newState.winnerId = saved.winnerId;
 
-                // If not explicitly set winner but scores exist, deduce it
                 if (!newState.winnerId && (newState.score1 !== null && newState.score2 !== null)) {
-                    const bestOf = (match.bracket === 'wb' || match.id.endsWith('-f')) ? 5 : 3; // WB and Finals are Bo5
+                    // BO5 for WB and Finals/Late LB, BO3 early LB? 
+                    // Let's stick to BO5 for WB and BO3 for LB early
+                    const isBo5 = match.bracket === 'wb' || match.bracket === 'gf' || match.round >= 6;
+                    const bestOf = isBo5 ? 5 : 3;
                     const thresh = Math.ceil(bestOf / 2);
                     if (newState.score1 >= thresh) newState.winnerId = match.player1Id;
                     else if (newState.score2 >= thresh) newState.winnerId = match.player2Id;
@@ -376,7 +355,6 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
                 newState.winnerId = null;
             }
 
-            // Detect Change
             if (newState.winnerId !== match.winnerId || newState.player1Id !== match.player1Id || newState.player2Id !== match.player2Id) {
                 Object.assign(match, newState);
                 changed = true;
@@ -385,8 +363,7 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
         return changed;
     };
 
-    // Run resolve multiple times to propagate through the tree
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
         if (!resolve()) break;
     }
 
@@ -397,7 +374,6 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
 export const generateDoubleEliminationBracket = (players) => rebuildBracketState(players, {});
 
 export const updateBracketMatch = (matches, matchId, score1, score2, microPoints = [], playersSource, winnerId = null, status = 'live') => {
-    // 1. Snapshot current results
     const resultsMap = {};
     matches.forEach(m => {
         if (m.score1 !== null || m.score2 !== null || m.winnerId) {
@@ -411,7 +387,6 @@ export const updateBracketMatch = (matches, matchId, score1, score2, microPoints
         }
     });
 
-    // 2. Update target
     resultsMap[matchId] = {
         score1: Number(score1),
         score2: Number(score2),
@@ -420,7 +395,6 @@ export const updateBracketMatch = (matches, matchId, score1, score2, microPoints
         status
     };
 
-    // 3. Rebuild
     return rebuildBracketState(playersSource, resultsMap);
 };
 
@@ -439,7 +413,3 @@ export const clearBracketMatch = (matches, matchId, playersSource) => {
     });
     return rebuildBracketState(playersSource, resultsMap);
 };
-/ /   S e s s i o n :   0 2 / 0 3 / 2 0 2 6   1 1 : 4 3 : 1 3  
- } ;  
-  
- 
