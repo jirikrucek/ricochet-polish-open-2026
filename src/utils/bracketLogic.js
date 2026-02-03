@@ -59,7 +59,10 @@ const getTargetDropId = (sourceId) => {
         if (m === 1) return 'lb-r6-m2';
         if (m === 2) return 'lb-r6-m1';
     }
-    // WB R5 (Final) -> Usually drops to LB Final? No, here loser goes to 3rd Place match (p3-f), winner to GF.
+    // WB R5 (Final) -> Loser drops to Consolation Final (3rd Place Match / GF Qualifier)
+    if (r === 5) {
+        return `consolation-final`;
+    }
     return null;
 };
 
@@ -110,8 +113,8 @@ export const getBracketBlueprint = () => {
     matches.push(mkMatch(`wb-r5-m1`, 'wb', 5, {
         sourceMatchId1: `wb-r4-m1`, sourceType1: 'winner',
         sourceMatchId2: `wb-r4-m2`, sourceType2: 'winner',
-        nextMatchId: `grand-final`, // Winner to GF
-        loserMatchId: `p3-f`        // Loser to 3rd Place Match
+        nextMatchId: `grand-final`,
+        loserMatchId: `consolation-final`
     }));
 
     // --- LOSERS BRACKET (LB) ---
@@ -122,7 +125,7 @@ export const getBracketBlueprint = () => {
             sourceMatchId1: `wb-r1-m${i * 2 - 1}`, sourceType1: 'loser',
             sourceMatchId2: `wb-r1-m${i * 2}`, sourceType2: 'loser',
             nextMatchId: `lb-r2-m${i}`,
-            loserMatchId: `p25-r1-m${Math.ceil(i / 2)}` // Drop to 25-32 bracket
+            loserMatchId: `p25-r1-m${Math.ceil(i / 2)}`
         }));
     }
 
@@ -133,7 +136,7 @@ export const getBracketBlueprint = () => {
             sourceMatchId1: `lb-r1-m${i}`, sourceType1: 'winner',
             sourceMatchId2: `wb-r2-m${wbSourceIndex}`, sourceType2: 'loser',
             nextMatchId: `lb-r3-m${Math.ceil(i / 2)}`,
-            loserMatchId: `p17-r1-m${Math.ceil(i / 2)}` // Drop to 17-24 bracket
+            loserMatchId: `p17-r1-m${Math.ceil(i / 2)}`
         }));
     }
 
@@ -143,7 +146,7 @@ export const getBracketBlueprint = () => {
             sourceMatchId1: `lb-r2-m${i * 2 - 1}`, sourceType1: 'winner',
             sourceMatchId2: `lb-r2-m${i * 2}`, sourceType2: 'winner',
             nextMatchId: `lb-r4-m${i}`,
-            loserMatchId: `p13-r1-m${Math.ceil(i / 2)}` // Drop to 13-16 bracket
+            loserMatchId: `p13-r1-m${Math.ceil(i / 2)}`
         }));
     }
 
@@ -158,7 +161,7 @@ export const getBracketBlueprint = () => {
             sourceMatchId1: `lb-r3-m${i}`, sourceType1: 'winner',
             sourceMatchId2: `wb-r3-m${getWbSourceR3(i)}`, sourceType2: 'loser',
             nextMatchId: `lb-r5-m${Math.ceil(i / 2)}`,
-            loserMatchId: `p9-r1-m${Math.ceil(i / 2)}` // Drop to 9-12 bracket
+            loserMatchId: `p9-r1-m${Math.ceil(i / 2)}`
         }));
     }
 
@@ -168,7 +171,7 @@ export const getBracketBlueprint = () => {
             sourceMatchId1: `lb-r4-m${i * 2 - 1}`, sourceType1: 'winner',
             sourceMatchId2: `lb-r4-m${i * 2}`, sourceType2: 'winner',
             nextMatchId: `lb-r6-m${i}`,
-            loserMatchId: `p7-f` // Drop to 7th Place Match
+            loserMatchId: `p7-f`
         }));
     }
 
@@ -182,7 +185,7 @@ export const getBracketBlueprint = () => {
             sourceMatchId1: `lb-r5-m${i}`, sourceType1: 'winner',
             sourceMatchId2: `wb-r4-m${getWbSourceR4(i)}`, sourceType2: 'loser',
             nextMatchId: `lb-final`,
-            loserMatchId: `p5-f` // Drop to 5th Place Match
+            loserMatchId: `p5-f`
         }));
     }
 
@@ -190,21 +193,33 @@ export const getBracketBlueprint = () => {
     matches.push(mkMatch(`lb-final`, 'lb', 7, {
         sourceMatchId1: `lb-r6-m1`, sourceType1: 'winner',
         sourceMatchId2: `lb-r6-m2`, sourceType2: 'winner',
-        nextMatchId: `grand-final`, // Winner to GF
-        loserMatchId: `p3-f`        // Loser to 3rd Place Match
+        nextMatchId: `consolation-final`,
+        loserMatchId: `p4-f`
+    }));
+
+    // --- FINALS ---
+
+    // Consolation Final (3rd Place Match / Gateway to GF)
+    // Winner goes to Grand Final.
+    // Loser is 3rd Place.
+    matches.push(mkMatch(`consolation-final`, 'gf', 1, {
+        sourceMatchId1: `wb-r5-m1`, sourceType1: 'loser',
+        sourceMatchId2: `lb-final`, sourceType2: 'winner',
+        nextMatchId: `grand-final`
+        // Loser gets 3rd place implicitly (terminal for loser)
     }));
 
     // Grand Final
-    matches.push(mkMatch(`grand-final`, 'gf', 1, {
+    // Winner is 1st, Loser is 2nd.
+    matches.push(mkMatch(`grand-final`, 'gf', 2, {
         sourceMatchId1: `wb-r5-m1`, sourceType1: 'winner',
-        sourceMatchId2: `lb-final`, sourceType2: 'winner'
+        sourceMatchId2: `consolation-final`, sourceType2: 'winner'
     }));
 
 
     // --- PLACEMENT BRACKETS (MONRAD EXPANSION) ---
 
     // 1. Group 25-32 (Fed by LB R1 losers)
-    // p25-r1 (4 matches)
     for (let i = 1; i <= 4; i++) {
         matches.push(mkMatch(`p25-r1-m${i}`, 'p25', 1, {
             sourceMatchId1: `lb-r1-m${i * 2 - 1}`, sourceType1: 'loser',
@@ -213,7 +228,6 @@ export const getBracketBlueprint = () => {
             loserMatchId: `p29-r1-m${Math.ceil(i / 2)}`
         }));
     }
-    // p25-r2 (2 matches) - Semis for 25th
     for (let i = 1; i <= 2; i++) {
         matches.push(mkMatch(`p25-r2-m${i}`, 'p25', 2, {
             sourceMatchId1: `p25-r1-m${i * 2 - 1}`, sourceType1: 'winner',
@@ -230,7 +244,6 @@ export const getBracketBlueprint = () => {
         sourceMatchId1: `p25-r2-m1`, sourceType1: 'loser',
         sourceMatchId2: `p25-r2-m2`, sourceType2: 'loser'
     }));
-    // p29 (Losers of p25-r1)
     for (let i = 1; i <= 2; i++) {
         matches.push(mkMatch(`p29-r1-m${i}`, 'p29', 1, {
             sourceMatchId1: `p25-r1-m${i * 2 - 1}`, sourceType1: 'loser',
@@ -250,7 +263,6 @@ export const getBracketBlueprint = () => {
 
 
     // 2. Group 17-24 (Fed by LB R2 losers)
-    // p17-r1 (4 matches)
     for (let i = 1; i <= 4; i++) {
         matches.push(mkMatch(`p17-r1-m${i}`, 'p17', 1, {
             sourceMatchId1: `lb-r2-m${i * 2 - 1}`, sourceType1: 'loser',
@@ -259,7 +271,6 @@ export const getBracketBlueprint = () => {
             loserMatchId: `p21-r1-m${Math.ceil(i / 2)}`
         }));
     }
-    // p17-r2 (2 matches) - Semis for 17th
     for (let i = 1; i <= 2; i++) {
         matches.push(mkMatch(`p17-r2-m${i}`, 'p17', 2, {
             sourceMatchId1: `p17-r1-m${i * 2 - 1}`, sourceType1: 'winner',
@@ -276,7 +287,6 @@ export const getBracketBlueprint = () => {
         sourceMatchId1: `p17-r2-m1`, sourceType1: 'loser',
         sourceMatchId2: `p17-r2-m2`, sourceType2: 'loser'
     }));
-    // p21 (Losers of p17-r1)
     for (let i = 1; i <= 2; i++) {
         matches.push(mkMatch(`p21-r1-m${i}`, 'p21', 1, {
             sourceMatchId1: `p17-r1-m${i * 2 - 1}`, sourceType1: 'loser',
@@ -296,7 +306,6 @@ export const getBracketBlueprint = () => {
 
 
     // 3. Group 13-16 (Fed by LB R3 losers)
-    // p13-r1 (2 matches)
     for (let i = 1; i <= 2; i++) {
         matches.push(mkMatch(`p13-r1-m${i}`, 'p13', 1, {
             sourceMatchId1: `lb-r3-m${i * 2 - 1}`, sourceType1: 'loser',
@@ -316,7 +325,6 @@ export const getBracketBlueprint = () => {
 
 
     // 4. Group 9-12 (Fed by LB R4 losers)
-    // p9-r1 (2 matches) - Semis for 9th
     for (let i = 1; i <= 2; i++) {
         matches.push(mkMatch(`p9-r1-m${i}`, 'p9', 1, {
             sourceMatchId1: `lb-r4-m${i * 2 - 1}`, sourceType1: 'loser',
@@ -347,10 +355,20 @@ export const getBracketBlueprint = () => {
         sourceMatchId2: `lb-r6-m2`, sourceType2: 'loser'
     }));
 
-    // 7. 3rd Place (Fed by WB Final loser and LB Final loser)
-    matches.push(mkMatch(`p3-f`, 'p3', 1, {
-        sourceMatchId1: `wb-r5-m1`, sourceType1: 'loser',
-        sourceMatchId2: `lb-final`, sourceType2: 'loser'
+    // 7. 4th Place (Fed by LB Final loser)
+    matches.push(mkMatch(`p4-f`, 'p4', 1, {
+        sourceMatchId1: `lb-final`, sourceType1: 'loser',
+        sourceMatchId2: null, sourceType2: null // One player? No, waiting for logic or just a slot. Actually, normally p4 is just the label for the loser. 
+        // But the user requested "assign to p4-f for order".
+        // Wait, p4-f is a match? With whom? 
+        // 4th place is a SINGLE player (the loser of LB Final). They don't play a match for 4th. They ARE 4th.
+        // If I create a match `p4-f`, it will look empty if it has only 1 player.
+        // However, I will create it as a placeholder if requested, maybe for display.
+        // Or I can just leave it as a terminal state.
+        // Let's create it but populated by just one player to signify the rank? 
+        // No, standard is: loser of LB Final IS 4th.
+        // But user said: "Przegrany zajmuje 4. miejsce (możesz go przypisać do p4-f dla porządku)".
+        // I will link it. Display might be weird if single player.
     }));
 
     return matches;
@@ -389,15 +407,10 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
 
     // 4. Processing Order: WB -> LB -> Placement
     const sortedMatches = [...allMatches].sort((a, b) => {
-        // WB first
         if (a.bracket === 'wb' && b.bracket !== 'wb') return -1;
         if (a.bracket !== 'wb' && b.bracket === 'wb') return 1;
-
-        // LB second
         if (a.bracket === 'lb' && b.bracket !== 'lb') return -1;
         if (a.bracket !== 'lb' && b.bracket === 'lb') return 1;
-
-        // Then by Round
         return a.round - b.round;
     });
 
@@ -470,10 +483,9 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
                 newState.microPoints = saved.micro_points || [];
                 newState.winnerId = saved.winnerId;
 
-                // Auto-determine winner if scores exist and no winner set
+                // Auto-determine winner
                 if (!newState.winnerId && (newState.score1 !== null && newState.score2 !== null)) {
-                    // BO5 for WB, GF, Final placements only? 
-                    // Let's keep it simple: BO5 for WB, LB Final, GF. Placements BO3.
+                    // BO5 Logic for Finals
                     const isBo5 = match.bracket === 'wb' || match.bracket === 'gf' || match.id === 'lb-final';
                     const bestOf = isBo5 ? 5 : 3;
                     const thresh = Math.ceil(bestOf / 2);
@@ -494,7 +506,6 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
         return changed;
     };
 
-    // More iterations for deep placement trees
     for (let i = 0; i < 20; i++) {
         if (!resolve()) break;
     }

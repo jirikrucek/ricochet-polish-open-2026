@@ -43,9 +43,8 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
     // Grouping
     const wbMatches = enrichedMatches.filter(m => m.bracket === 'wb');
     const lbMatches = enrichedMatches.filter(m => m.bracket === 'lb');
-    const gfMatches = enrichedMatches.filter(m => m.bracket === 'gf' || m.bracket === 'p3').sort((a, b) => {
-        if (a.bracket === 'gf' && b.bracket !== 'gf') return -1;
-        return 0;
+    const gfMatches = enrichedMatches.filter(m => m.bracket === 'gf').sort((a, b) => {
+        return a.round - b.round;
     });
 
     // Rounds - Aligning Columns
@@ -60,7 +59,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
         { id: '9-12', brackets: ['p9', 'p11'], title: 'Places 9-12' },
         { id: '7-8', brackets: ['p7'], title: '7th Place' },
         { id: '5-6', brackets: ['p5'], title: '5th Place' },
-        { id: '3rd', brackets: ['p3'], title: '3rd Place' }
+        { id: '4th', brackets: ['p4'], title: '4th Place' }
     ];
 
     // --- 2. Path Calculation ---
@@ -247,7 +246,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                             ))}
                             {visibleSections.includes('mid') && gfMatches.length > 0 && (
                                 <div className="section-mid" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '20px', marginLeft: '10px' }}>
-                                    {gfMatches.map(m => renderMatch(m, m.bracket === 'p3' ? '3RD' : 'FIN'))}
+                                    {gfMatches.map(m => renderMatch(m, m.id === 'grand-final' ? 'FINAL' : '3RD/GF-Q'))}
                                     <div style={{ alignSelf: 'center', opacity: 0.4 }}><Trophy size={48} color="#fbbf24" /></div>
                                 </div>
                             )}
