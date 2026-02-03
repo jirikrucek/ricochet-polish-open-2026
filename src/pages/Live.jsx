@@ -207,8 +207,8 @@ const Live = () => {
         if (!match) return;
 
         console.log(`[JUDGE] Update: ${type} ${playerKey} ${change}`);
-        // DEBUG ALERT
-        if (type === 'point' && !setIndex) window.alert(`Updating Score: ${playerKey} ${change}`);
+        // Removed debug alert per request
+
 
         // 1. DEEP CLONE (Critical for React/Firestore references)
         let newScore1 = match.score1 ?? 0;
@@ -321,8 +321,24 @@ const Live = () => {
                         <div className="player-firstname">{splitName(match.player1.full_name).firstName}</div>
                         {/* Current Set Points Display */}
                         {isStillPlaying && (isAuthenticated || currentSet) && (
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '5px', color: courtColor }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '5px', color: courtColor, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {currentSet ? currentSet.a : 0}
+                                {isAuthenticated && (
+                                    <>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleLiveScoreUpdate(match, 'point', 'a', 1); }}
+                                            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: courtColor, borderRadius: '4px', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        >
+                                            <Plus size={16} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleLiveScoreUpdate(match, 'point', 'a', -1); }}
+                                            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: courtColor, borderRadius: '4px', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        >
+                                            <Minus size={16} />
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
@@ -377,8 +393,24 @@ const Live = () => {
                         <div className="player-firstname">{splitName(match.player2.full_name).firstName}</div>
                         {/* Current Set Points Display */}
                         {isStillPlaying && (isAuthenticated || currentSet) && (
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '5px', color: courtColor }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '5px', color: courtColor, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {currentSet ? currentSet.b : 0}
+                                {isAuthenticated && (
+                                    <>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleLiveScoreUpdate(match, 'point', 'b', 1); }}
+                                            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: courtColor, borderRadius: '4px', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        >
+                                            <Plus size={16} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleLiveScoreUpdate(match, 'point', 'b', -1); }}
+                                            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: courtColor, borderRadius: '4px', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        >
+                                            <Minus size={16} />
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
