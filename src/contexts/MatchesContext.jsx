@@ -81,13 +81,24 @@ export const MatchesProvider = ({ children }) => {
                         return;
                     }
 
-                    const loaded = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    })).map(mapToCamel);
+                    const loaded = snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        // FORCE ID consistency: use the doc.id as the truth
+                        return {
+                            id: doc.id,
+                            ...data
+                        };
+                    })
+                        // Filter out any auto-generated IDs that don't match our schema (wb-rX-mY)
+                        .filter(m => m.id.includes('-'))
+                        .map(mapToCamel);
 
-                    setMatches(loaded);
-                    console.log(`[MatchesContext] Loaded ${loaded.length} matches from Firebase`);
+                    // Dedup: if duplicate IDs exist, take the last one (rare edge case)
+                    const uniqueMap = new Map();
+                    loaded.forEach(m => uniqueMap.set(m.id, m));
+
+                    setMatches(Array.from(uniqueMap.values()));
+                    console.log(`[MatchesContext] Loaded ${uniqueMap.size} matches from Firebase`);
                 }, (error) => {
                     console.error("[MatchesContext] Firebase Error:", error);
                 });
@@ -181,6 +192,8 @@ export const MatchesProvider = ({ children }) => {
 
                 const promises = changesToSave.map(match => {
                     console.log("DEBUG: Sending SINGLE match to Firestore:", match.id);
+                    // CRITICAL: Ensure we write to the specific document ID (e.g., wb-r1-m1)
+                    // and merge true is usually safer but we want to overwrite state here
                     const docRef = doc(db, "matches", match.id);
                     return setDoc(docRef, match);
                 });
