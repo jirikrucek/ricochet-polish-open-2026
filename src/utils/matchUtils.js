@@ -1,13 +1,34 @@
-
 // Helper to get BO format based on bracket type
 export const getBestOf = (bracketType) => {
     if (bracketType === 'wb' || bracketType === 'gf') return 5; // BO5
     return 3; // BO3
 };
 
+// Check if match is finished based on scores and BO format
+export const isMatchFinished = (score1, score2, bestOf) => {
+    const s1 = parseInt(score1) || 0;
+    const s2 = parseInt(score2) || 0;
+    const winThreshold = Math.ceil(bestOf / 2);
+    return s1 >= winThreshold || s2 >= winThreshold;
+};
+
+// Returns TRUE if match is still running (Live), FALSE if finished
+export const checkMatchStatus = (currentScore, format) => {
+    // currentScore can be object { score1, score2 } or just number of wins if passed simpler
+    const bestOf = format === 'BO5' ? 5 : 3;
+    return !isMatchFinished(currentScore.score1, currentScore.score2, bestOf);
+};
+
 // Helper to determine status
 export const getMatchStatus = (match) => {
     if (match.winner_id) return 'finished';
+
+    // Updated Logic: Check strict win condition
+    const bestOf = getBestOf(match.bracket || (match.bracket_type === 'wb' ? 'wb' : 'lb'));
+    if (isMatchFinished(match.score1, match.score2, bestOf)) {
+        return 'finished';
+    }
+
     if (match.score1 > 0 || match.score2 > 0) return 'live';
     if (match.player1 && match.player2) return 'pending'; // Ready to play
     return 'scheduled'; // Waiting for players

@@ -5,9 +5,15 @@ import { Maximize, Trophy, Clock, Activity, X } from 'lucide-react';
 import { useMatches } from '../hooks/useMatches';
 import { usePlayers } from '../hooks/usePlayers';
 import { useTournament } from '../contexts/TournamentContext';
-import { getBestOf, compareMatchIds } from '../utils/matchUtils';
+import { getBestOf, compareMatchIds, checkMatchStatus } from '../utils/matchUtils';
 import { getCountryCode } from '../constants/countries';
 import './Live.css';
+
+// Possible helper for flags...
+// ... (rest of imports are fine, I will target specific chunks)
+
+// I will target the imports first.
+
 
 // Helper Component for Flag
 const PlayerFlag = ({ countryCode }) => {
@@ -210,7 +216,11 @@ const Live = () => {
     const renderLiveMatch = (match, courtColor) => {
         if (!match) return renderEmptyLive(courtColor);
         const bestOf = getBestOf(match.bracket);
-        const isLive = (match.score1 > 0 || match.score2 > 0);
+
+        // Check Status using Helper
+        const format = bestOf === 5 ? 'BO5' : 'BO3';
+        const isStillPlaying = checkMatchStatus({ score1: match.score1, score2: match.score2 }, format);
+        const showLive = isStillPlaying && !match.winnerId;
 
         // Prepare micro points (sets)
         const sets = match.microPoints || [];
@@ -218,13 +228,14 @@ const Live = () => {
 
         return (
             <div className="live-match-display">
-                {isLive && (
+                {showLive && (
                     <div style={{
                         background: '#ef4444', color: 'white', display: 'inline-block',
                         padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, marginBottom: '0.5rem',
-                        animation: 'pulse 2s infinite'
+                        animation: 'pulse 2s infinite',
+                        boxShadow: '0 0 8px rgba(239, 68, 68, 0.5)'
                     }}>
-                        {t('live.liveBadge')}
+                        {t('live.liveBadge') || "Live"}
                     </div>
                 )}
                 <div className="match-bracket-info">
@@ -241,26 +252,26 @@ const Live = () => {
 
                     <div className="score-center-col">
                         <div className="score-display">
-                            <span className="big-score" style={{ color: courtColor }}>
-                                {(match.winnerId || match.score1 > 0 || match.score2 > 0) ? (match.score1 ?? 0) : '-'}
+                            <span className="big-score" style={{
+                                color: courtColor,
+                                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                display: 'inline-block'
+                            }}>
+                                {(match.winnerId || match.score1 > 0 || match.score2 > 0 || showLive) ? (match.score1 ?? 0) : '-'}
                             </span>
                             <span className="vs-divider"> : </span>
-                            <span className="big-score" style={{ color: courtColor }}>
-                                {(match.winnerId || match.score1 > 0 || match.score2 > 0) ? (match.score2 ?? 0) : '-'}
+                            <span className="big-score" style={{
+                                color: courtColor,
+                                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                display: 'inline-block'
+                            }}>
+                                {(match.winnerId || match.score1 > 0 || match.score2 > 0 || showLive) ? (match.score2 ?? 0) : '-'}
                             </span>
                         </div>
                     </div>
 
                     <div className="player-container right" style={{ color: match.score2 > match.score1 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                         <div className="player-surname">
-                            {/* Flag before name per request, even on right side? */}
-                            {/* If right aligned, "Flag Name" might put flag far right if using flex? 
-                                 Right container has align-items: flex-end.
-                                 So elements stack vertically.
-                                 Wait, surname is a block/div?
-                                 `div.player-surname` contains text.
-                                 I'll put <PlayerFlag /> inside.
-                             */}
                             <PlayerFlag countryCode={match.player2.country} />
                             {splitName(match.player2.full_name).surname}
                         </div>
@@ -272,7 +283,7 @@ const Live = () => {
                 {sortedSets.length > 0 && (
                     <div className="sets-container">
                         {sortedSets.map((s, idx) => (
-                            <div key={idx} className="set-box">
+                            <div key={idx} className="set-box" style={{ animation: 'fadeIn 0.5s ease-out' }}>
                                 <div className="set-label">SET {s.set}</div>
                                 <div className="set-score">
                                     <span className={s.a > s.b ? 'set-winner' : ''}>{s.a}</span>
