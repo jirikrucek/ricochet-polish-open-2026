@@ -54,13 +54,13 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
 
     // Monrad Groups
     const monradConfig = [
-        { id: '25-32', brackets: ['lb'], rounds: [1], title: 'Places 25-32' },
-        { id: '17-24', brackets: ['lb'], rounds: [2], title: 'Places 17-24' },
-        { id: '13-16', brackets: ['lb'], rounds: [3], title: 'Places 13-16' },
-        { id: '9-12', brackets: ['lb'], rounds: [4], title: 'Places 9-12' },
-        { id: '7-8', brackets: ['lb'], rounds: [5], title: 'Places 7-8' },
-        { id: '5-6', brackets: ['lb'], rounds: [6], title: 'Places 5-6' },
-        { id: '3rd', brackets: ['p3'], title: '3rd Place Match' }
+        { id: '25-32', brackets: ['p25', 'p27', 'p29', 'p31'], title: 'Places 25-32' },
+        { id: '17-24', brackets: ['p17', 'p19', 'p21', 'p23'], title: 'Places 17-24' },
+        { id: '13-16', brackets: ['p13', 'p15'], title: 'Places 13-16' },
+        { id: '9-12', brackets: ['p9', 'p11'], title: 'Places 9-12' },
+        { id: '7-8', brackets: ['p7'], title: '7th Place' },
+        { id: '5-6', brackets: ['p5'], title: '5th Place' },
+        { id: '3rd', brackets: ['p3'], title: '3rd Place' }
     ];
 
     // --- 2. Path Calculation ---
