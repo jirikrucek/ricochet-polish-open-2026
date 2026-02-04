@@ -80,7 +80,7 @@ export const MatchesProvider = ({ children }) => {
 
                     const loaded = snapshot.docs.map(doc => {
                         // FORCE ID consistency: The document ID is the source of truth
-                        return { id: doc.id, ...doc.data() };
+                        return { ...doc.data(), id: doc.id };
                     })
                         // Filter out any garbage IDs that might have crept in
                         .filter(m => m.id && m.id.includes('-'))
