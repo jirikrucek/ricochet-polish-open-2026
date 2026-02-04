@@ -337,3 +337,23 @@
         justify-content: center !important;
     }
 }
+
+/* --- ADDED: Queue Columns for Pending Matches --- */
+.queue-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.queue-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@media (max-width: 1024px) {
+    .queue-columns {
+        grid-template-columns: 1fr;
+    }
+}

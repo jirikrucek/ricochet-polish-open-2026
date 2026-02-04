@@ -488,15 +488,52 @@ const Matches = () => {
                 </section>
             )}
 
-            {/* 2. Upcoming / Pending List */}
+            {/* 2. Upcoming / Pending List - COLUMNS */}
             {(processedMatches.pending.length > 0) && (filter === 'all' || filter === 'pending') && (
                 <section>
                     <div className="section-header">
                         <Clock size={20} /> {t('matches.nextMatches')}
                     </div>
-                    <div className="match-list-container">
-                        {processedMatches.pending.map(m => renderMatchRow(m))}
-                    </div>
+
+                    {/* Logic to split pending into Pink and Cyan queues */}
+                    {(() => {
+                        const pinkQueue = [];
+                        const cyanQueue = [];
+
+                        processedMatches.pending.forEach((m, idx) => {
+                            if (m.court === 'Kort Różowy') {
+                                pinkQueue.push(m);
+                            } else if (m.court === 'Kort Turkusowy') {
+                                cyanQueue.push(m);
+                            } else {
+                                // Default distribution if no court assigned (Alternating)
+                                if (idx % 2 === 0) pinkQueue.push(m);
+                                else cyanQueue.push(m);
+                            }
+                        });
+
+                        return (
+                            <div className="queue-columns">
+                                {/* PINK COLUMN */}
+                                <div className="queue-column">
+                                    <h3 style={{ color: 'var(--accent-pink)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', paddingLeft: '0.5rem', borderLeft: '3px solid var(--accent-pink)' }}>
+                                        {t('live.pinkQueue')}
+                                    </h3>
+                                    {pinkQueue.length === 0 && <div className="empty-state-text" style={{ padding: '1rem', fontSize: '0.8rem' }}>Default queue empty</div>}
+                                    {pinkQueue.map(m => renderMatchRow(m))}
+                                </div>
+
+                                {/* CYAN COLUMN */}
+                                <div className="queue-column">
+                                    <h3 style={{ color: 'var(--accent-cyan)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', paddingLeft: '0.5rem', borderLeft: '3px solid var(--accent-cyan)' }}>
+                                        {t('live.cyanQueue')}
+                                    </h3>
+                                    {cyanQueue.length === 0 && <div className="empty-state-text" style={{ padding: '1rem', fontSize: '0.8rem' }}>Default queue empty</div>}
+                                    {cyanQueue.map(m => renderMatchRow(m))}
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </section>
             )}
 
