@@ -45,107 +45,94 @@
 }
 
 /* Sidebar (Desktop) */
+/* Sidebar (Now Top Navigation Bar) */
 .sidebar {
     position: fixed;
-    top: 80px;
-    /* Increased top spacing */
-    left: 1rem;
-    /* Detached from left edge */
-    bottom: 1rem;
-    /* Detached from bottom */
-    width: 260px;
-    background: rgba(30, 30, 35, 0.6);
-    /* Translucent dark */
+    top: 74px;
+    /* Below header */
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    min-width: 600px;
+    max-width: 95vw;
+    background: rgba(30, 30, 35, 0.7);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 1.5rem 1rem;
+    border-radius: 50px;
+    /* Pillow shape */
+    padding: 0.5rem 0.75rem;
     display: flex;
-    flex-direction: column;
-    z-index: 40;
-    transition: transform 0.3s ease;
+    align-items: center;
+    justify-content: center;
+    z-index: 45;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    /* height: 60px; */
 }
 
 .nav-list {
     list-style: none;
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    /* More spacing between items */
-    flex: 1;
+    flex-direction: row;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    align-items: center;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    border-radius: 12px;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 24px;
     color: var(--text-secondary);
     font-weight: 500;
+    font-size: 0.9rem;
     transition: all 0.2s ease;
     text-decoration: none;
     border: 1px solid transparent;
-    /* Prevent layout shift on hover border */
     position: relative;
-    overflow: hidden;
+    white-space: nowrap;
 }
 
 .nav-item:hover {
     background-color: rgba(255, 255, 255, 0.05);
     color: var(--text-primary);
-    transform: translateX(4px);
+    transform: translateY(-2px);
 }
 
 /* Default Active (fallback) */
 .nav-item.active {
-    background: rgba(255, 255, 255, 0.08);
-    /* Subtle gloss */
+    background: rgba(255, 255, 255, 0.1);
     color: white;
     font-weight: 600;
     border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Active Indicator Glow */
+/* Active Indicator Glow - Hidden for pill style or used differently */
 .nav-item.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: currentColor;
-    /* Uses the color set by accent classes */
-    border-radius: 4px;
+    display: none;
 }
 
 /* Dynamic Alternating Active Colors (overrides default) and Gradient Backgrounds */
 .nav-item.active.accent-pink {
-    background: linear-gradient(90deg, rgba(232, 121, 249, 0.15), rgba(232, 121, 249, 0.02));
+    background: linear-gradient(135deg, rgba(232, 121, 249, 0.25), rgba(232, 121, 249, 0.05));
     color: var(--accent-pink);
-    border-left: 1px solid var(--accent-pink);
-    border-color: rgba(232, 121, 249, 0.3);
+    border: 1px solid rgba(232, 121, 249, 0.3);
 }
 
 .nav-item.active.accent-cyan {
-    background: linear-gradient(90deg, rgba(34, 211, 238, 0.15), rgba(34, 211, 238, 0.02));
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.25), rgba(34, 211, 238, 0.05));
     color: var(--accent-cyan);
-    border-left: 1px solid var(--accent-cyan);
-    border-color: rgba(34, 211, 238, 0.3);
-}
-
-/* Override the strict left border with the pseudo-element for smoother look or keep simple border */
-.nav-item.active::before {
-    display: none;
-    /* Removing the previous before to use the border-left and gradient style */
+    border: 1px solid rgba(34, 211, 238, 0.3);
 }
 
 /* Icons in Nav */
 .nav-item svg {
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    width: 18px;
+    height: 18px;
+    opacity: 0.8;
 }
 
 .nav-item:hover svg,
@@ -189,15 +176,19 @@
 
 /* Main Content */
 .main-content {
-    margin-top: 64px;
-    /* Header height */
-    margin-left: 240px;
-    /* Sidebar width */
+    margin-top: 150px;
+    /* Header (64) + Nav (~60) + Spacing */
+    margin-left: 0;
+    /* Centered layout */
     padding: 2rem;
     min-height: calc(100vh - 64px);
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
 }
 
 .page-container {
