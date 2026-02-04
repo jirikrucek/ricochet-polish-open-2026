@@ -121,7 +121,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
         return () => cancelAnimationFrame(timer);
     }, [matches.length, visibleSections.join(','), players.length]);
 
-    // --- 3. Render Match Card (Solid Block Design) ---
+    // --- 3. Render Match Card (Live View Aesthetic) ---
     const renderMatch = (match, customHeader = null) => {
         const p1 = match.player1;
         const p2 = match.player2;
@@ -131,26 +131,31 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
         const showScore = match.status === 'finished' || (match.status === 'live' && (match.score1 > 0 || match.score2 > 0));
 
         const displayId = customHeader || getMatchNumber(match.id);
-        const isPlacement = match.bracket.startsWith('p');
+        const isLive = match.status === 'live';
 
-        // Solid Block Style: No borders, use background contrast
-        const bgStyle = isPlacement
-            ? 'linear-gradient(145deg, #1e1e1e, #141414)'
-            : 'linear-gradient(145deg, #27272a, #18181b)';
+        // Define card background based on state
+        // Live matches get a subtle colored influence, others are dark glass
+        const bgStyle = isLive
+            ? 'linear-gradient(135deg, rgba(40, 40, 40, 0.95), rgba(20, 20, 20, 0.98))'
+            : 'linear-gradient(180deg, rgba(35, 35, 35, 0.9) 0%, rgba(15, 15, 15, 0.95) 100%)';
+
+        const borderColor = isLive ? 'rgba(236, 72, 153, 0.5)' : 'rgba(255, 255, 255, 0.1)';
+        const boxShadow = isLive ? '0 0 15px rgba(236, 72, 153, 0.15)' : '0 4px 6px -1px rgba(0, 0, 0, 0.3)';
 
         return (
             <div
                 ref={el => matchRefs.current[match.id] = el}
                 key={match.id}
                 onClick={isClickable ? () => onMatchClick(match) : undefined}
-                className="match-card-solid"
+                className="match-card-live-style"
                 style={{
-                    width: '180px',
+                    width: '200px', // Slightly wider for professional look
                     flexShrink: 0,
                     background: bgStyle,
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
-                    transition: 'transform 0.2s',
+                    borderRadius: '12px', // Matches live view
+                    border: `1px solid ${borderColor}`,
+                    boxShadow: boxShadow,
+                    transition: 'all 0.2s',
                     cursor: isClickable ? 'pointer' : 'default',
                     display: 'flex', flexDirection: 'column',
                     position: 'relative',
@@ -158,57 +163,75 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                     fontSize: '0.75rem',
                     fontFamily: '"Inter", sans-serif',
                     overflow: 'hidden',
-                    // No border!
+                    backdropFilter: 'blur(10px)'
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.6)';
+                    e.currentTarget.style.borderColor = isLive ? 'rgba(236, 72, 153, 0.8)' : 'rgba(255, 255, 255, 0.3)';
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'none';
-                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)';
+                    e.currentTarget.style.borderColor = borderColor;
                 }}
             >
-                {/* Header built into the block */}
+                {/* Header matches Live "Upcoming" headers */}
                 <div style={{
-                    padding: '6px 10px',
+                    padding: '8px 12px',
                     fontSize: '0.65rem',
                     color: 'rgba(255,255,255,0.4)',
-                    background: 'rgba(0,0,0,0.2)',
-                    display: 'flex', justifyContent: 'space-between',
-                    fontWeight: 600
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    fontWeight: 600,
+                    letterSpacing: '1px'
                 }}>
-                    <span>{match.bracket.toUpperCase()} #{displayId}</span>
-                    {match.status === 'live' && <span style={{ color: '#ef4444' }}>LIVE</span>}
+                    <span>{match.bracket.toUpperCase()} • R{match.round}</span>
+                    {isLive && <span style={{
+                        background: '#ef4444', color: 'white', padding: '1px 6px',
+                        borderRadius: '4px', fontSize: '0.6rem', fontWeight: 800
+                    }}>LIVE</span>}
                 </div>
 
-                <div style={{ padding: '8px 4px' }}>
+                <div style={{ padding: '10px 0' }}>
                     {[
                         { p: p1, s: match.score1, w: isWinner1 },
                         { p: p2, s: match.score2, w: isWinner2 }
                     ].map((row, idx) => {
                         let displayText = row.p ? row.p.full_name : 'TBD';
-                        let displayColor = row.p ? '#e4e4e7' : 'rgba(255,255,255,0.2)';
+                        let displayColor = row.p ? '#ffffff' : 'rgba(255,255,255,0.3)';
                         const fontWeight = row.w ? 700 : 400;
-                        // Reduce opacity for loser if match finished
-                        const opacity = (match.status === 'finished' && !row.w) ? 0.4 : 1;
+                        const opacity = (match.status === 'finished' && !row.w) ? 0.5 : 1;
 
                         return (
                             <div key={idx} style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                padding: '3px 8px', opacity
+                                padding: '4px 12px', opacity
                             }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                                    {/* Country Flag Circle Placeholder if available, else generic dot */}
+                                    {row.p && row.p.country && (
+                                        <img
+                                            src={`https://flagcdn.com/w20/${row.p.country.toLowerCase()}.png`}
+                                            alt={row.p.country}
+                                            style={{ width: '14px', height: '10px', borderRadius: '2px', objectFit: 'cover' }}
+                                        />
+                                    )}
+                                    <span style={{
+                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                        color: displayColor,
+                                        fontWeight: fontWeight,
+                                        fontSize: '0.85rem',
+                                        maxWidth: '120px'
+                                    }}>
+                                        {displayText}
+                                    </span>
+                                </div>
                                 <span style={{
-                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                                    color: displayColor,
-                                    fontWeight: fontWeight,
-                                    fontSize: '0.8rem',
-                                    maxWidth: '125px'
+                                    fontWeight: 700,
+                                    color: row.w ? 'var(--accent-primary)' : 'rgba(255,255,255,0.2)',
+                                    fontSize: '0.9rem',
+                                    fontFamily: 'monospace'
                                 }}>
-                                    {displayText}
-                                </span>
-                                <span style={{ fontWeight: 700, color: row.w ? '#4ade80' : 'rgba(255,255,255,0.2)', fontSize: '0.8rem' }}>
-                                    {showScore ? (Number(row.s) || 0) : ''}
+                                    {showScore ? (Number(row.s) || 0) : '-'}
                                 </span>
                             </div>
                         );
