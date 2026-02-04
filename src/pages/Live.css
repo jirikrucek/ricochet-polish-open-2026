@@ -144,8 +144,10 @@
 
 @media (min-width: 1200px) {
     .dashboard-grid {
-        grid-template-columns: 1fr 400px;
-        /* Reduced to 400px for better fit */
+        grid-template-columns: 1fr 480px;
+        /* Widen sidebar to 480px as requested */
+        gap: 2rem;
+        /* Little more breathing room */
         align-items: start;
     }
 }
@@ -175,8 +177,8 @@
     gap: 1.5rem;
 }
 
-/* Only show side-by-side courts on VERY wide screens to prevent overlap */
-@media (min-width: 1600px) {
+/* Only show side-by-side courts on MASSIVE screens (e.g. 4K) to prevent overlap/cut-off */
+@media (min-width: 1950px) {
     .courts-container {
         grid-template-columns: 1fr 1fr;
     }
