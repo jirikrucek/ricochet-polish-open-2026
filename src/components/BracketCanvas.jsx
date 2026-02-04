@@ -121,7 +121,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
         return () => cancelAnimationFrame(timer);
     }, [matches.length, visibleSections.join(','), players.length]);
 
-    // --- 3. Render Match Card ---
+    // --- 3. Render Match Card (Minimalist Redesign) ---
     const renderMatch = (match, customHeader = null) => {
         const p1 = match.player1;
         const p2 = match.player2;
@@ -133,71 +133,69 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
         // Restore missing definitions
         const racketCfg = getRacketPathConfig(match.id);
         const displayId = customHeader || getMatchNumber(match.id);
-        const getSourceColor = (sourceId) => sourceId ? getMatchColor(sourceId) : '#555';
 
-        // Styling for placement brackets
+        // Minimalist: No colorful borders by default, simple clean look
+        // We use a very subtle bottom border for the card, or just text.
+        // Let's use a card with a very subtle border and background.
+
         const isPlacement = match.bracket.startsWith('p');
-        const borderColor = isPlacement ? '#f97316' : racketCfg.color; // Orange for placement
-        const glowColor = isPlacement ? '#f97316' : racketCfg.color;
 
         return (
             <div
                 ref={el => matchRefs.current[match.id] = el}
                 key={match.id}
                 onClick={isClickable ? () => onMatchClick(match) : undefined}
-                className="match-card-hover"
+                className="match-card-minimal"
                 style={{
                     width: '180px',
                     flexShrink: 0,
-                    background: isPlacement ? 'rgba(249, 115, 22, 0.05)' : 'transparent',
-                    borderLeft: `3px solid ${borderColor}`,
-                    transition: 'all 0.3s ease',
+                    background: 'var(--bg-card)', // Use CSS var or fallback
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '4px',
+                    transition: 'all 0.2s ease',
                     cursor: isClickable ? 'pointer' : 'default',
                     display: 'flex', flexDirection: 'column',
                     position: 'relative',
                     zIndex: 10,
                     fontSize: '0.75rem',
                     fontFamily: '"Inter", sans-serif',
-                    overflow: 'visible',
-                    marginBottom: isPlacement ? '8px' : '0'
+                    overflow: 'hidden'
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.backdropFilter = 'blur(5px)';
-                    e.currentTarget.style.boxShadow = `0 0 15px ${glowColor}20`; // subtle glow
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+                    // e.currentTarget.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.backdropFilter = 'none';
-                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                    // e.currentTarget.style.transform = 'none';
                 }}
             >
-                <div style={{ paddingBottom: '4px', paddingTop: '4px' }}>
+                {/* Match ID Header - Minimal */}
+                <div style={{
+                    padding: '2px 8px',
+                    fontSize: '0.6rem',
+                    color: 'rgba(255,255,255,0.3)',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex', justifyContent: 'space-between'
+                }}>
+                    <span>{match.bracket.toUpperCase()} #{displayId}</span>
+                    {match.status === 'live' && <span style={{ color: '#ef4444', fontWeight: 'bold' }}>LIVE</span>}
+                </div>
+
+                <div style={{ padding: '4px 0' }}>
                     {[
-                        { p: p1, s: match.score1, w: isWinner1, src: match.sourceMatchId1, type: match.sourceType1 },
-                        { p: p2, s: match.score2, w: isWinner2, src: match.sourceMatchId2, type: match.sourceType2 }
+                        { p: p1, s: match.score1, w: isWinner1 },
+                        { p: p2, s: match.score2, w: isWinner2 }
                     ].map((row, idx) => {
-                        // TBD Logic
-                        let displayText = 'TBD';
-                        let displayColor = 'rgba(255,255,255,0.2)';
-
-                        if (row.p) {
-                            displayText = row.p.full_name;
-                            displayColor = '#ffffff';
-                        } else if (row.src) {
-                            const srcNum = getMatchNumber(row.src);
-                            const prefix = row.type === 'loser' ? 'L' : 'W';
-                            displayText = `${prefix}${srcNum}`;
-                            displayColor = getSourceColor(row.src);
-                        }
-
-                        // Bold winner
-                        const fontWeight = row.w ? 600 : 300;
+                        let displayText = row.p ? row.p.full_name : 'TBD';
+                        let displayColor = row.p ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.2)';
+                        const fontWeight = row.w ? 600 : 400;
                         const rowOpacity = (match.status === 'finished' && !row.w) ? 0.5 : 1;
 
                         return (
                             <div key={idx} style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                padding: '4px 12px',
-                                background: 'transparent',
+                                padding: '4px 8px',
                                 opacity: rowOpacity
                             }}>
                                 <span style={{
@@ -205,11 +203,11 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                                     color: displayColor,
                                     fontWeight: fontWeight,
                                     fontSize: '0.75rem',
-                                    letterSpacing: '0.5px',
+                                    maxWidth: '130px'
                                 }}>
                                     {displayText}
                                 </span>
-                                <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem' }}>
+                                <span style={{ fontWeight: 600, color: row.w ? '#22c55e' : 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>
                                     {showScore ? (Number(row.s) || 0) : ''}
                                 </span>
                             </div>
@@ -221,24 +219,32 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
     };
 
     if (!enrichedMatches || enrichedMatches.length === 0) {
-        return <div style={{ color: '#fff', padding: '40px' }}>{t('brackets.noData') || 'No bracket data available. Please generate a new bracket.'}</div>;
+        return <div style={{ color: '#fff', padding: '40px' }}>{t('brackets.noData') || 'No bracket data available.'}</div>;
     }
 
     return (
-        <div className="bracket-scroll-container" style={{ width: '100%', height: '100%', overflowX: 'auto', background: '#09090b', position: 'relative' }}>
-            <svg style={{ position: 'absolute', top: 0, left: 0, width: '8000px', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
+        <div className="bracket-scroll-container" style={{ width: '100%', height: '100%', overflowX: 'auto', background: '#000000', position: 'relative' }}>
+            {/* Simple Grid Background Pattern for minimalism */}
+            <div style={{
+                position: 'absolute', inset: 0,
+                backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+                backgroundSize: '20px 20px',
+                pointerEvents: 'none'
+            }} />
+
+            <svg style={{ position: 'absolute', top: 0, left: 0, width: '8000px', height: '100%', pointerEvents: 'none', zIndex: 5 }}>
                 {paths.map(p => (
-                    <path key={p.id} d={p.d} stroke={p.color} strokeWidth={p.width} fill="none" strokeDasharray={p.dash || 'none'} />
+                    <path key={p.id} d={p.d} stroke="rgba(255,255,255,0.15)" strokeWidth={1} fill="none" strokeDasharray={p.dash || 'none'} />
                 ))}
             </svg>
 
-            <div ref={containerRef} className="bracket-layout" style={{ display: 'flex', flexDirection: 'row', minWidth: 'max-content', minHeight: '100vh' }}>
+            <div ref={containerRef} className="bracket-layout" style={{ display: 'flex', flexDirection: 'row', minWidth: 'max-content', minHeight: '100vh', padding: '40px' }}>
 
                 {/* 1. Winners Bracket */}
                 {visibleSections.includes('wb') && (
-                    <div className="section-wb" style={{ display: 'flex', flexDirection: 'column', padding: '40px', borderRight: '1px solid rgba(255,255,255,0.02)' }}>
-                        <h2 style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 400, marginBottom: '60px', opacity: 0.3, letterSpacing: '4px', textTransform: 'uppercase' }}>Winners Bracket</h2>
-                        <div style={{ display: 'flex', gap: '50px' }}>
+                    <div className="section-wb" style={{ display: 'flex', flexDirection: 'column', marginRight: '60px' }}>
+                        {/* <h2 style={{ ...headerStyle }}>Winners</h2> */}
+                        <div style={{ display: 'flex', gap: '60px' }}>
                             {wbRounds.map((roundMatches, i) => (
                                 <div key={i} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: '20px' }}>
                                     {roundMatches.map(m => renderMatch(m))}
@@ -246,8 +252,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                             ))}
                             {visibleSections.includes('mid') && gfMatches.length > 0 && (
                                 <div className="section-mid" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '20px', marginLeft: '10px' }}>
-                                    {gfMatches.map(m => renderMatch(m, m.id === 'grand-final' ? 'FINAL' : '3RD/GF-Q'))}
-                                    <div style={{ alignSelf: 'center', opacity: 0.4 }}><Trophy size={48} color="#fbbf24" /></div>
+                                    {gfMatches.map(m => renderMatch(m, m.id === 'grand-final' ? 'FINAL' : '3RD'))}
                                 </div>
                             )}
                         </div>
@@ -256,9 +261,9 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
 
                 {/* 2. Losers Bracket */}
                 {visibleSections.includes('lb') && (
-                    <div className="section-lb" style={{ display: 'flex', flexDirection: 'column', padding: '40px', borderRight: '1px solid rgba(255,255,255,0.02)' }}>
-                        <h2 style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 400, marginBottom: '60px', opacity: 0.3, letterSpacing: '4px', textTransform: 'uppercase' }}>Losers Bracket</h2>
-                        <div style={{ display: 'flex', gap: '50px' }}>
+                    <div className="section-lb" style={{ display: 'flex', flexDirection: 'column', marginRight: '60px' }}>
+                        {/* <h2 style={{ ...headerStyle }}>Losers</h2> */}
+                        <div style={{ display: 'flex', gap: '60px' }}>
                             {lbRounds.map((roundMatches, i) => (
                                 <div key={i} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: '20px' }}>
                                     {roundMatches.map(m => renderMatch(m))}
@@ -270,28 +275,24 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
 
                 {/* 3. Placement Matches */}
                 {(visibleSections.includes('lb') || visibleSections.includes('all') || visibleSections.includes('placement')) && (
-                    <div className="section-monrad" style={{ display: 'flex', flexDirection: 'column', padding: '40px' }}>
-                        <h2 style={{ color: '#f97316', fontSize: '0.75rem', fontWeight: 700, marginBottom: '60px', opacity: 0.9, letterSpacing: '4px', textTransform: 'uppercase', textShadow: '0 0 20px rgba(249, 115, 22, 0.4)' }}>Placement Matches</h2>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '50px', maxWidth: '4000px' }}>
+                    <div className="section-monrad" style={{ display: 'flex', flexDirection: 'column' }}>
+                        {/* <h2 style={{ ...headerStyle }}>Placement</h2> */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', maxWidth: '4000px' }}>
                             {monradConfig.map(group => {
                                 let groupMatches = enrichedMatches.filter(m => group.brackets.some(b => m.bracket.startsWith(b)));
-                                if (!groupMatches.length) {
-                                    groupMatches = getBracketBlueprint().filter(m => group.brackets.some(b => m.bracket.startsWith(b)))
-                                        .map(m => ({ ...m, player1: null, player2: null }));
-                                }
-                                if (!groupMatches.length) return null;
+                                if (!groupMatches.length) return null; // Simplified logic for brevity in this view
+
                                 const rounds = [];
                                 groupMatches.forEach(m => {
                                     if (group.rounds && !group.rounds.includes(m.round)) return;
                                     if (!rounds[m.round]) rounds[m.round] = [];
                                     rounds[m.round].push(m);
                                 });
-                                // Filter out empty rounds if we filtered by round
                                 if (group.rounds && Object.keys(rounds).length === 0) return null;
 
                                 return (
                                     <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '180px', marginRight: '20px' }}>
-                                        <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.65rem', opacity: 0.3, letterSpacing: '2px', marginBottom: '15px' }}>{group.title.toUpperCase()}</div>
+                                        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem', fontWeight: 600, marginBottom: '8px', letterSpacing: '1px' }}>{group.title.toUpperCase()}</div>
                                         <div style={{ display: 'flex', gap: '30px' }}>
                                             {rounds.map((rMatches, i) => rMatches && (
                                                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '15px', justifyContent: 'center' }}>
