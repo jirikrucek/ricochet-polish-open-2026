@@ -336,7 +336,7 @@ const Live = () => {
 
             <header className="live-header">
                 <div>
-                    <h1 className="live-title">{t('live.title')}</h1>
+                    <h1 className="live-title text-gradient">{t('live.title')}</h1>
                 </div>
                 <div className="digital-clock">{formatTime(currentTime)}</div>
             </header>
