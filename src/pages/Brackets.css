@@ -60,9 +60,7 @@
     justify-content: center;
 }
 
-.section-lb {
-    /* background-color: rgba(249, 115, 22, 0.03); REMOVED */
-}
+
 
 .section-title {
     font-size: 1.5rem;
@@ -209,3 +207,24 @@
 
 /* Modal Styles Reuse */
 /* Assuming usage of modal styles from Players.css or global if extracted */
+
+.bracket-layout {
+    padding: 60px;
+}
+
+@media (max-width: 768px) {
+    .bracket-layout {
+        padding: 20px;
+    }
+
+    .bracket-section {
+        padding: 1rem;
+        /* reduce from 2rem */
+    }
+
+    .section-wb,
+    .section-lb {
+        margin-right: 40px !important;
+        /* Override inline 100px */
+    }
+}

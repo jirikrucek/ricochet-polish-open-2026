@@ -170,8 +170,17 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
             });
             setPaths(newPaths);
         };
+
+        // Initial calc
         const timer = requestAnimationFrame(calcPaths);
-        return () => cancelAnimationFrame(timer);
+
+        // Re-calc on window resize
+        window.addEventListener('resize', calcPaths);
+
+        return () => {
+            cancelAnimationFrame(timer);
+            window.removeEventListener('resize', calcPaths);
+        };
     }, [matches.length, visibleSections.join(','), players.length, highlightedIds]); // Added highlightedIds dependency
 
     // --- 3. Render Match Card (Pink/Cyan Theme) ---
@@ -386,7 +395,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
 
             {/* SVG Connectors REMOVED per user request for clean look */}
 
-            <div ref={containerRef} className="bracket-layout" style={{ display: 'flex', flexDirection: 'row', minWidth: 'max-content', minHeight: '100vh', padding: '60px' }}>
+            <div ref={containerRef} className="bracket-layout" style={{ display: 'flex', flexDirection: 'row', minWidth: 'max-content', minHeight: '100vh' }}>
 
                 {/* 1. Winners Bracket (Pink Theme) */}
                 {visibleSections.includes('wb') && (

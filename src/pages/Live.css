@@ -796,7 +796,76 @@
     padding: 2px 8px;
     border-radius: 4px;
     letter-spacing: 1px;
+    letter-spacing: 1px;
     animation: pulseLive 2s infinite;
+}
+
+/* --- MOBILE OPTIMIZATIONS --- */
+@media (max-width: 768px) {
+    .live-container {
+        padding: 0.5rem;
+        padding-bottom: 5rem;
+    }
+
+    .dashboard-grid {
+        padding: 0.5rem;
+        gap: 1rem;
+    }
+
+    .live-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .live-title {
+        font-size: 1.5rem;
+    }
+
+    .digital-clock {
+        font-size: 1.2rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Compact Courts on Mobile */
+    .court-card.compact {
+        min-height: auto;
+    }
+
+    .court-header-slim {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .court-label {
+        font-size: 0.8rem;
+    }
+
+    .court-content-compact {
+        padding: 1rem 0.75rem;
+    }
+
+    .court-content-compact .player-surname {
+        font-size: 1.1rem;
+    }
+
+    .court-content-compact .player-firstname {
+        font-size: 0.8rem;
+    }
+
+    .court-content-compact .big-score {
+        font-size: 1.8rem;
+    }
+
+    .set-box {
+        min-width: 40px;
+        padding: 0.2rem 0.4rem;
+    }
+
+    .set-score {
+        font-size: 0.9rem;
+    }
 }
 
 @keyframes pulseLive {
