@@ -60,6 +60,47 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
         return ids;
     }, [hoveredMatchId, enrichedMatches]);
 
+    const getMatchNumber = (id) => {
+        if (!id || typeof id !== 'string') return 0;
+        const parts = id.split('-m');
+        return parts.length > 1 ? parseInt(parts[1], 10) : 0;
+    };
+
+    const getShortMatchId = (id) => {
+        if (!id) return '';
+        const parts = id.split('-');
+        if (parts.length < 3) return id;
+        const b = parts[0].toUpperCase();
+        const r = parts[1].replace('r', '');
+        const m = parts[2].replace('m', '');
+        if (b === 'P25') return `25-32 #1.${m}`;
+        return `${b} ${r}.${m}`;
+    };
+
+    const byMatchId = (a, b) => getMatchNumber(a?.id) - getMatchNumber(b?.id);
+
+    // Grouping
+    const wbMatches = enrichedMatches.filter(m => m.bracket === 'wb');
+    const lbMatches = enrichedMatches.filter(m => m.bracket === 'lb');
+    const gfMatches = enrichedMatches.filter(m => m.bracket === 'gf').sort((a, b) => {
+        return a.round - b.round;
+    });
+
+    // Rounds - Aligning Columns
+    const wbRounds = [1, 2, 3, 4, 5].map(r => wbMatches.filter(m => m.round === r).sort(byMatchId));
+    const lbRounds = [1, 2, 3, 4, 5, 6, 7, 8].map(r => lbMatches.filter(m => m.round === r).sort(byMatchId));
+
+    // Monrad Groups
+    const monradConfig = [
+        { id: '25-32', brackets: ['p25', 'p27', 'p29', 'p31'], title: 'Places 25-32' },
+        { id: '17-24', brackets: ['p17', 'p19', 'p21', 'p23'], title: 'Places 17-24' },
+        { id: '13-16', brackets: ['p13', 'p15'], title: 'Places 13-16' },
+        { id: '9-12', brackets: ['p9', 'p11'], title: 'Places 9-12' },
+        { id: '7-8', brackets: ['p7'], title: '7th Place' },
+        { id: '5-6', brackets: ['p5'], title: '5th Place' },
+        { id: '4th', brackets: ['p4'], title: '4th Place' }
+    ];
+
     // --- 2. Path Calculation ---
     useLayoutEffect(() => {
         if (!containerRef.current) return;
