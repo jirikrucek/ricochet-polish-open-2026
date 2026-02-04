@@ -281,11 +281,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
     return (
         <div className="bracket-scroll-container" style={{ width: '100%', height: '100%', overflowX: 'auto', background: '#000000', position: 'relative' }}>
 
-            <svg style={{ position: 'absolute', top: 0, left: 0, width: '8000px', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
-                {paths.map(p => (
-                    <path key={p.id} d={p.d} stroke="rgba(255,255,255,0.15)" strokeWidth={1.5} fill="none" strokeDasharray={p.dash || 'none'} />
-                ))}
-            </svg>
+            {/* SVG Connectors REMOVED per user request for clean look */}
 
             <div ref={containerRef} className="bracket-layout" style={{ display: 'flex', flexDirection: 'row', minWidth: 'max-content', minHeight: '100vh', padding: '60px' }}>
 
