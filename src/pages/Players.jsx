@@ -424,85 +424,71 @@ const Players = () => {
                 </div>
             </div>
 
-            <div className="players-table-container">
-                <table className="players-table">
-                    <thead>
-                        <tr>
-                            <th style={{ width: '60px', textAlign: 'center' }}>{t('players.headers.photo')}</th>
-                            <th>{t('players.headers.fullName')}</th>
-                            <th>{t('players.headers.country')}</th>
-                            <th>{t('players.headers.elo')}</th>
-                            {isAuthenticated && <th style={{ width: '100px', textAlign: 'center' }}>{t('common.actions')}</th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredPlayers.length > 0 ? (
-                            filteredPlayers.map(player => (
-                                <tr key={player.id} onClick={() => setSelectedProfilePlayer(player)} style={{ cursor: 'pointer' }}>
-                                    <td>
-                                        <div className="player-avatar">
-                                            {player.photo ? (
-                                                <img src={player.photo} alt={player.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            ) : (
-                                                <User size={24} />
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span className="player-name">{player.full_name || player.fullName}</span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            {getCountryCode(player.country) ? (
-                                                <img
-                                                    src={`https://flagcdn.com/20x15/${getCountryCode(player.country)}.png`}
-                                                    srcSet={`https://flagcdn.com/40x30/${getCountryCode(player.country)}.png 2x`}
-                                                    width="20"
-                                                    height="15"
-                                                    alt={player.country}
-                                                    style={{ objectFit: 'contain' }}
-                                                />
-                                            ) : (
-                                                <span style={{ width: 20 }}></span>
-                                            )}
-                                            <span>{player.country || '-'}</span>
-                                        </div>
-                                    </td>
-                                    <td>{player.elo || '-'}</td>
-                                    {isAuthenticated && (
-                                        <td onClick={e => e.stopPropagation()}>
-                                            <div className="flex-center" style={{ gap: '0.5rem' }}>
-                                                <button
-                                                    className="btn-icon"
-                                                    onClick={() => handleEdit(player)}
-                                                    title={t('common.edit')}
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    className="btn-icon delete"
-                                                    onClick={() => handleDelete(player.id)}
-                                                    title={t('common.delete')}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
+            {filteredPlayers.length > 0 ? (
+                <div className="players-grid">
+                    {filteredPlayers.map(player => (
+                        <div
+                            key={player.id}
+                            className="player-card animate-scale-in"
+                            onClick={() => setSelectedProfilePlayer(player)}
+                        >
+                            <div className="card-avatar-wrapper">
+                                <div className="card-avatar">
+                                    {player.photo ? (
+                                        <img src={player.photo} alt={player.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <User size={32} />
                                     )}
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={isAuthenticated ? "5" : "4"}>
-                                    <div className="empty-state">
-                                        {searchTerm ? t('players.empty.notFound') : t('players.empty.start')}
+                                </div>
+                                {getCountryCode(player.country) && (
+                                    <img
+                                        className="card-flag-badge"
+                                        src={`https://flagcdn.com/24x18/${getCountryCode(player.country)}.png`}
+                                        alt={player.country}
+                                    />
+                                )}
+                            </div>
+
+                            <div className="card-info">
+                                <div className="card-name" title={player.full_name}>{player.full_name}</div>
+                                <div className="card-country-name">{player.country || '-'}</div>
+
+                                <div className="card-stats">
+                                    <div className="card-stat-item">
+                                        <span className="card-stat-value">{player.elo || 0}</span>
+                                        <span className="card-stat-label">POINTS</span>
                                     </div>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                                    {/* Calculated Stats could go here if available in player object, defaulting to placeholder or removing if heavy calculation needed */}
+                                </div>
+                            </div>
+
+                            {isAuthenticated && (
+                                <div className="card-actions" onClick={e => e.stopPropagation()}>
+                                    <button
+                                        className="action-btn-mini"
+                                        onClick={() => handleEdit(player)}
+                                        title={t('common.edit')}
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                    <button
+                                        className="action-btn-mini delete"
+                                        onClick={() => handleDelete(player.id)}
+                                        title={t('common.delete')}
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="empty-state">
+                    <User size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                    <div>{searchTerm ? t('players.empty.notFound') : t('players.empty.start')}</div>
+                </div>
+            )}
 
             <PlayerFormModal
                 isOpen={isModalOpen}
