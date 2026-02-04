@@ -337,9 +337,6 @@ const Live = () => {
             <header className="live-header">
                 <div>
                     <h1 className="live-title">{t('live.title')}</h1>
-                    <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>
-                        ID: {activeTournamentId} • Loaded: {matches?.length || 0}
-                    </div>
                 </div>
                 <div className="digital-clock">{formatTime(currentTime)}</div>
             </header>
