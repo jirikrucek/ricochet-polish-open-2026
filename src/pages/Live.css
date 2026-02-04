@@ -178,8 +178,10 @@
 
 .court-card.compact {
     padding: 0;
-    min-height: auto;
-    /* Remove huge height */
+    min-height: 280px;
+    /* Ensure enough height for the new layout */
+    display: flex;
+    flex-direction: column;
 }
 
 .court-header-slim {
@@ -820,18 +822,23 @@
 
 .broadcast-content {
     display: grid;
-    grid-template-columns: 1fr 100px 1fr;
-    gap: 1rem;
-    align-items: center;
+    grid-template-columns: 1fr 140px 1fr;
+    /* Widened center column */
+    gap: 0.5rem;
+    align-items: start;
+    /* Align to top to handle height diffs */
     position: relative;
     z-index: 10;
+    margin-top: 1rem;
+    flex: 1;
 }
 
 .broadcast-player {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 0 0.5rem;
+    height: 100%;
 }
 
 .broadcast-player.left {
@@ -847,35 +854,42 @@
 .player-name-group {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     line-height: 1;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    min-height: 60px;
+    /* Reserve space for names */
 }
 
 .player-first {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-secondary);
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
 }
 
 .player-last {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: -1px;
+    letter-spacing: 0px;
     color: var(--text-primary);
+    line-height: 0.9;
 }
 
 .player-flag-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 4px;
-    opacity: 0.8;
+    margin-top: auto;
+    /* Push to bottom of player section if needed, or just below */
+    margin-bottom: 1rem;
+    opacity: 0.9;
 }
 
 .current-points {
-    font-size: 4.5rem;
+    font-size: 4rem;
     font-weight: 800;
     line-height: 1;
     margin-top: 0.5rem;
@@ -887,11 +901,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.03);
+    justify-content: flex-start;
+    background: rgba(0, 0, 0, 0.2);
+    /* Darker, less glass */
     border-radius: 12px;
-    padding: 1rem 0;
+    padding: 1rem 0.5rem;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    height: 100%;
 }
 
 .sets-score-main {
