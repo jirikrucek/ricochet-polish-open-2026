@@ -1,8 +1,8 @@
 /* Bracket Container */
+/* Bracket Container */
 .bracket-container {
     width: 100%;
     height: 100%;
-    background-color: var(--bg-primary);
     overflow: hidden;
     /* handled by zoom/pan */
     position: relative;
@@ -29,14 +29,14 @@
     padding: 2rem;
     gap: 0;
     /* No gap, borders will separate sections */
-    background-color: #f0f2f5;
     /* Light neutral canvas */
     min-height: 100vh;
     width: max-content;
+    background: transparent;
 }
 
 [data-theme='dark'] .bracket-canvas {
-    background-color: #0f1115;
+    background: transparent;
 }
 
 /* Sections */

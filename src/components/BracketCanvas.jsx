@@ -330,7 +330,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
     };
 
     return (
-        <div className="bracket-scroll-container" style={{ width: '100%', height: '100%', overflowX: 'auto', background: '#000000', position: 'relative' }}>
+        <div className="bracket-scroll-container" style={{ width: '100%', height: '100%', overflowX: 'auto', position: 'relative' }}>
 
             {/* SVG Connectors REMOVED per user request for clean look */}
 
