@@ -365,8 +365,27 @@ const Live = () => {
                         </div>
                     </div>
 
+
+                </div>
+
+                {/* RIGHT: SIDEBAR */}
+                <div className="dashboard-column side-column">
+                    <div className="upcoming-panel glass-panel">
+                        <div className="panel-header"><Clock size={16} style={{ marginRight: '8px' }} /> UPCOMING</div>
+
+                        <div className="upcoming-group">
+                            <div className="group-label" style={{ color: 'var(--accent-pink)' }}>PINK QUEUE</div>
+                            {renderUpcomingList(pinkState.upcoming)}
+                        </div>
+                        <div className="divider-line"></div>
+                        <div className="upcoming-group">
+                            <div className="group-label" style={{ color: 'var(--accent-cyan)' }}>CYAN QUEUE</div>
+                            {renderUpcomingList(cyanState.upcoming)}
+                        </div>
+                    </div>
+
                     {/* RECENT RESULTS */}
-                    <div className="glass-panel" style={{ marginTop: '2rem' }}>
+                    <div className="glass-panel">
                         <div className="panel-header"><Trophy size={16} style={{ marginRight: '8px' }} /> RECENT RESULTS</div>
                         <div style={{ padding: '0 1rem' }}>
                             {finishedMatches.length === 0 && <div className="empty-state">No results yet.</div>}
@@ -384,23 +403,6 @@ const Live = () => {
                                     <div className="recent-score">{m.score1}:{m.score2}</div>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* RIGHT: SIDEBAR */}
-                <div className="dashboard-column side-column">
-                    <div className="upcoming-panel glass-panel">
-                        <div className="panel-header"><Clock size={16} style={{ marginRight: '8px' }} /> UPCOMING</div>
-
-                        <div className="upcoming-group">
-                            <div className="group-label" style={{ color: 'var(--accent-pink)' }}>PINK QUEUE</div>
-                            {renderUpcomingList(pinkState.upcoming)}
-                        </div>
-                        <div className="divider-line"></div>
-                        <div className="upcoming-group">
-                            <div className="group-label" style={{ color: 'var(--accent-cyan)' }}>CYAN QUEUE</div>
-                            {renderUpcomingList(cyanState.upcoming)}
                         </div>
                     </div>
                 </div>

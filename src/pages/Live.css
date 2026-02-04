@@ -251,13 +251,10 @@
 
 /* UPCOMING SIDEBAR */
 .upcoming-panel {
-    height: calc(100vh - 140px);
-    /* Sticky fill */
-    position: sticky;
-    top: 20px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* Removed fixed height/sticky to allow stacking with Recent Results */
 }
 
 .panel-header {
