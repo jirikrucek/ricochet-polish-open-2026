@@ -305,7 +305,7 @@ const Live = () => {
         if (!queue || queue.length === 0) return <div className="upcoming-item empty">{t('live.noUpcoming')}</div>;
         return queue.map(m => (
             <div key={m.id} className="upcoming-row">
-                {/* P1 Section: Flag then Name (Right aligned towards Center) */}
+                {/* P1 Section: Flag then Name (Left Aligned) */}
                 <div className="upcoming-p1">
                     <PlayerFlag countryCode={m.player1.country} />
                     <span className="upcoming-name">{formatName(m.player1)}</span>
@@ -313,7 +313,7 @@ const Live = () => {
 
                 <div className="upcoming-vs">vs</div>
 
-                {/* P2 Section: Name then Flag (Left aligned from Center) */}
+                {/* P2 Section: Name then Flag (Right Aligned) */}
                 <div className="upcoming-p2">
                     <span className="upcoming-name">{formatName(m.player2)}</span>
                     <PlayerFlag countryCode={m.player2.country} />
