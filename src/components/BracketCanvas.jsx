@@ -290,7 +290,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                     <div className="section-wb" style={{ display: 'flex', flexDirection: 'column', marginRight: '100px' }}>
                         <div style={sectionHeaderStyle}>
                             <div style={{ width: '6px', height: '32px', background: '#ec4899', borderRadius: '2px' }}></div>
-                            <span>WINNERS</span>
+                            <span>WINNERS BRACKET</span>
                         </div>
                         <div style={{ display: 'flex', gap: '80px' }}>
                             {wbRounds.map((roundMatches, i) => (
@@ -315,7 +315,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                     <div className="section-lb" style={{ display: 'flex', flexDirection: 'column', marginRight: '100px' }}>
                         <div style={sectionHeaderStyle}>
                             <div style={{ width: '6px', height: '32px', background: '#06b6d4', borderRadius: '2px' }}></div>
-                            <span>LOSERS</span>
+                            <span>LOSERS BRACKET</span>
                         </div>
                         <div style={{ display: 'flex', gap: '80px' }}>
                             {lbRounds.map((roundMatches, i) => (
@@ -332,7 +332,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                     <div className="section-monrad" style={{ display: 'flex', flexDirection: 'column' }}>
                         <div style={sectionHeaderStyle}>
                             <div style={{ width: '6px', height: '32px', background: '#fff', borderRadius: '2px' }}></div>
-                            <span>PLACEMENT</span>
+                            <span>PLACEMENT STAGE</span>
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '60px', maxWidth: '4000px' }}>
                             {monradConfig.map(group => {
