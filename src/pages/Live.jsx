@@ -1,8 +1,9 @@
+```javascript
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Maximize, Clock, Activity, X, Plus, Minus, Trophy } from 'lucide-react';
-import { QRCodeCanvas } from 'qrcode.react'; // Restored Library Component
+import { Maximize, Clock, Activity, X, Trophy } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 import { useMatches } from '../hooks/useMatches';
 import { usePlayers } from '../hooks/usePlayers';
@@ -15,7 +16,6 @@ import './Live.css';
 
 // --- HELPERS ---
 
-// Helper Component for Flag
 const PlayerFlag = ({ countryCode }) => {
     if (!countryCode) return null;
     let code = countryCode.length > 2 ? (getCountryCode(countryCode) || countryCode) : countryCode;
@@ -23,26 +23,21 @@ const PlayerFlag = ({ countryCode }) => {
     return (
         <img
             src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
-            alt={countryCode}
-            className="player-flag"
-            onError={(e) => { e.target.style.display = 'none'; }}
+alt = { countryCode }
+className = "player-flag"
+onError = {(e) => { e.target.style.display = 'none'; }}
         />
     );
 };
 
-// Full Name formatting as requested
 const formatName = (p) => {
     if (!p) return 'TBD';
-    // If full_name exists, try to use it, otherwise generic
     if (p.full_name) return p.full_name;
     if (p.firstName && p.lastName) return `${p.firstName} ${p.lastName}`;
     return 'Unknown Player';
 };
 
 const splitNameForDisplay = (fullName) => {
-    // We want full name, but maybe split for styling if needed.
-    // User requested "Wyświetlaj pełne dane: {player.firstName} {player.lastName}"
-    // So we will just render the full string in the main view, but keep this helper if we need surname emphasis.
     if (!fullName) return { first: '', last: 'TBD' };
     const parts = fullName.trim().split(/\s+/);
     if (parts.length < 2) return { first: '', last: fullName };
@@ -56,7 +51,7 @@ const Live = () => {
     const { isAuthenticated } = useAuth();
     const { matches, saveMatches } = useMatches();
     const { players } = usePlayers();
-    const { activeTournamentId, isLoading: isTournamentLoading } = useTournament();
+    const { activeTournamentId } = useTournament();
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -74,22 +69,18 @@ const Live = () => {
 
     const formatTime = (date) => date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-    // --- QUEUE LOGIC (RESTORED) ---
+    // --- QUEUE LOGIC ---
     const { pinkQueue, cyanQueue, finishedMatches } = useMemo(() => {
         if (!matches || !matches.length) return { pinkQueue: [], cyanQueue: [], finishedMatches: [] };
 
-        // 1. Enrich Matches with Player Objects
         const enriched = matches.map(m => ({
             ...m,
             player1: players.find(p => p.id === m.player1Id) || { full_name: 'TBD', id: null },
             player2: players.find(p => p.id === m.player2Id) || { full_name: 'TBD', id: null }
         }));
 
-        // 2. Filter Active & Finished
         const finished = enriched.filter(m => m.winnerId);
 
-        // Active: Live, Pending, Scheduled (excluding finished)
-        // Sort Priority: LIVE > PENDING (by ID)
         const active = enriched.filter(m => {
             const s = (m.status || 'pending').toLowerCase();
             return !m.winnerId && ['live', 'pending', 'scheduled'].includes(s);
@@ -101,31 +92,27 @@ const Live = () => {
             return compareMatchIds(a.id, b.id);
         });
 
-        // 3. Assign to Courts (Alternating)
         const pink = [];
         const cyan = [];
 
         active.forEach((m, idx) => {
-            // idx 0 -> Pink, idx 1 -> Cyan, idx 2 -> Pink...
             const court = idx % 2 === 0 ? 'courtPink' : 'courtCyan';
             const mWithCourt = { ...m, assignedCourt: court };
             if (court === 'courtPink') pink.push(mWithCourt);
             else cyan.push(mWithCourt);
         });
 
-        // 4. Finished for Recent Results
         const recentFn = finished.map((m, i) => ({
             ...m,
-            assignedCourt: i % 2 === 0 ? 'courtPink' : 'courtCyan' // Arbitrary assignment for visual dot
+            assignedCourt: i % 2 === 0 ? 'courtPink' : 'courtCyan'
         })).reverse().slice(0, 5);
 
         return { pinkQueue: pink, cyanQueue: cyan, finishedMatches: recentFn };
     }, [matches, players]);
 
-    // Helper to get Current Live + Upcoming list
     const getCourtState = (queue) => {
-        const current = queue.length > 0 ? queue[0] : null; // First in queue is current
-        const upcoming = queue.slice(1, 4); // Next 3
+        const current = queue.length > 0 ? queue[0] : null;
+        const upcoming = queue.slice(1, 4);
         return { current, upcoming };
     };
 
@@ -136,9 +123,8 @@ const Live = () => {
     const handleUpdate = (match, type, playerKey, change) => {
         if (!match || !isAuthenticated) return;
 
-        console.log(`[JUDGE] Update Request: Match ${match.id} | ${type} | ${playerKey} | ${change}`);
+        console.log(`[JUDGE] Update: ${match.id} | ${type} | ${playerKey} | ${change}`);
 
-        // Deep Clone to avoid ref mutation before save
         let score1 = match.score1 ?? 0;
         let score2 = match.score2 ?? 0;
         let microPoints = (match.microPoints || []).map(s => ({ ...s }));
@@ -147,13 +133,12 @@ const Live = () => {
             if (playerKey === 'score1') score1 += change;
             if (playerKey === 'score2') score2 += change;
         } else if (type === 'point') {
-            // Find active set or create one
             let targetSet;
             if (microPoints.length === 0) {
                 targetSet = { set: 1, a: 0, b: 0 };
                 microPoints.push(targetSet);
             } else {
-                targetSet = microPoints[microPoints.length - 1]; // modify last set
+                targetSet = microPoints[microPoints.length - 1];
             }
 
             const currentVal = targetSet[playerKey === 'a' ? 'a' : 'b'] || 0;
@@ -163,11 +148,9 @@ const Live = () => {
             if (playerKey === 'b') targetSet.b = nextVal;
         }
 
-        // Safety Clamp
         score1 = Math.max(0, score1);
         score2 = Math.max(0, score2);
 
-        // Check Winner
         const bestOf = getBestOf(match.bracket);
         const winThreshold = Math.ceil(bestOf / 2);
         let status = 'live';
@@ -176,7 +159,6 @@ const Live = () => {
         if (score1 >= winThreshold) { status = 'finished'; winnerId = match.player1.id; }
         else if (score2 >= winThreshold) { status = 'finished'; winnerId = match.player2.id; }
 
-        // Generate next state object
         const nextState = updateBracketMatch(
             matches,
             match.id,
@@ -188,7 +170,6 @@ const Live = () => {
             status
         );
 
-        // SAVE via Context (which handles locking)
         saveMatches(nextState, match.id);
     };
 
@@ -209,35 +190,58 @@ const Live = () => {
         const p1Name = splitNameForDisplay(formatName(match.player1));
         const p2Name = splitNameForDisplay(formatName(match.player2));
 
-        // INTERACTIVE HANDLERS
-        const handlePointAction = (e, playerKey, delta) => {
+        // INTERACTIVE OVERLAY HANDLERS
+        const handleZoneClick = (e, playerKey) => {
+            if (!isStillPlaying || !isAuthenticated) return;
+            e.preventDefault();
+            e.stopPropagation(); // Stop propagation to avoid bubbling
+            console.log(`[ZONE] ${playerKey} Point +`);
+            handleUpdate(match, 'point', playerKey, 1);
+        };
+
+        const handleZoneContext = (e, playerKey) => {
             if (!isStillPlaying || !isAuthenticated) return;
             e.preventDefault();
             e.stopPropagation();
-            console.log(`[ZONE] ${playerKey} Point ${delta > 0 ? '+' : '-'}`);
-            handleUpdate(match, 'point', playerKey, delta);
+            console.log(`[ZONE] ${playerKey} Point -`);
+            handleUpdate(match, 'point', playerKey, -1);
         };
 
-        const zoneStyle = isAuthenticated && isStillPlaying ? { cursor: 'pointer', transition: 'background 0.2s' } : {};
-        const hoverClass = isAuthenticated && isStillPlaying ? 'interactive-zone' : '';
-
         return (
-            <div style={{ position: 'relative', padding: '1rem', userSelect: 'none' }}>
+            <div style={{ position: 'relative', padding: '1rem', userSelect: 'none', overflow: 'hidden' }}>
                 {isStillPlaying && <div className="live-badge">LIVE</div>}
 
-                <div style={{ textAlign: 'center', marginBottom: '1rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontFamily: 'monospace' }}>
+                {/* --- CLICK-TO-SCORE OVERLAY (ABSOLUTE) --- */}
+                {isStillPlaying && isAuthenticated && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                        zIndex: 100, display: 'flex'
+                    }}>
+                        {/* P1 Zone */}
+                        <div
+                            style={{ flex: 1, height: '100%', cursor: 'pointer' }}
+                            onClick={(e) => handleZoneClick(e, 'a')}
+                            onContextMenu={(e) => handleZoneContext(e, 'a')}
+                            className="score-zone-activator" // For CSS scaling/hover effects if needed
+                        />
+                        {/* P2 Zone */}
+                        <div
+                            style={{ flex: 1, height: '100%', cursor: 'pointer' }}
+                            onClick={(e) => handleZoneClick(e, 'b')}
+                            onContextMenu={(e) => handleZoneContext(e, 'b')}
+                            className="score-zone-activator"
+                        />
+                    </div>
+                )}
+
+                <div style={{ textAlign: 'center', marginBottom: '1rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontFamily: 'monospace', position: 'relative', zIndex: 10 }}>
                     {(match.bracket || '').toUpperCase()} R{match.round} • BO{bestOf}
                 </div>
 
-                <div className="players-versus" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="players-versus" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 10, pointerEvents: 'none' }}>
 
-                    {/* LEFT PLAYER ZONE (Player A) */}
-                    <div
-                        className={hoverClass}
-                        style={{ flex: 1, textAlign: 'left', padding: '10px', borderRadius: '8px', ...zoneStyle }}
-                        onClick={(e) => handlePointAction(e, 'a', 1)}
-                        onContextMenu={(e) => handlePointAction(e, 'a', -1)}
-                    >
+                    {/* LEFT PLAYER VISUALS */}
+                    <div style={{ flex: 1, textAlign: 'left', padding: '10px' }}>
                         <div style={{ fontSize: '1.4rem', fontWeight: 700, lineHeight: 1.2 }}>
                             <PlayerFlag countryCode={match.player1.country} /> {p1Name.first} {p1Name.last}
                         </div>
@@ -247,38 +251,45 @@ const Live = () => {
                             </div>
                         )}
                         {/* Validation hint for admin */}
-                        {isAuthenticated && isStillPlaying && <div style={{ fontSize: '0.7rem', opacity: 0.3, marginTop: '4px' }}>L-Click (+), R-Click (-)</div>}
+                        {isAuthenticated && isStillPlaying && <div style={{ fontSize: '0.7rem', opacity: 0.3, marginTop: '4px' }}>L-Click(+), R-Click(-)</div>}
                     </div>
 
-                    {/* SCORE CENTER (Sets) */}
+                    {/* SCORE CENTER */}
                     <div style={{ padding: '0 1rem', textAlign: 'center', minWidth: '100px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                         <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', opacity: 0.9 }}>
                             {match.score1}:{match.score2}
                         </div>
                         <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.5 }}>SETS</div>
 
-                        {/* Set adjustment tiny buttons (only minimal controls left) */}
+                        {/* Manual Set Adjust (Only interactive element on top of overlay) */}
                         {isAuthenticated && isStillPlaying && (
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '8px' }}>
-                                <button style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: match.score1 > 0 ? courtColor : '#555', cursor: 'pointer', padding: '0 4px', fontSize: '0.7rem', borderRadius: '4px' }}
-                                    onClick={(e) => { e.stopPropagation(); handleUpdate(match, 'set', 'score1', -1) }} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdate(match, 'set', 'score1', 1) }}>
-                                    adj
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '8px', pointerEvents: 'auto' }}>
+                                <button style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)', color: '#aaa', cursor: 'pointer', padding: '2px 6px', fontSize: '0.6rem', borderRadius: '4px', zIndex: 101 }}
+                                    onClick={(e) => { e.stopPropagation(); handleUpdate(match, 'set', 'score1', 1) }}>
+                                    +S1
                                 </button>
-                                <button style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: match.score2 > 0 ? courtColor : '#555', cursor: 'pointer', padding: '0 4px', fontSize: '0.7rem', borderRadius: '4px' }}
-                                    onClick={(e) => { e.stopPropagation(); handleUpdate(match, 'set', 'score2', -1) }} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdate(match, 'set', 'score2', 1) }}>
-                                    adj
+                                <button style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)', color: '#aaa', cursor: 'pointer', padding: '2px 6px', fontSize: '0.6rem', borderRadius: '4px', zIndex: 101 }}
+                                    onClick={(e) => { e.stopPropagation(); handleUpdate(match, 'set', 'score2', 1) }}>
+                                    +S2
                                 </button>
                             </div>
                         )}
+                        {isAuthenticated && isStillPlaying && (match.microPoints?.length < bestOf) && (
+                            <button style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)', color: '#aaa', cursor: 'pointer', padding: '2px 6px', fontSize: '0.6rem', borderRadius: '4px', marginTop: '4px', zIndex: 101, pointerEvents: 'auto' }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newMicro = [...(match.microPoints || [])];
+                                    newMicro.push({ set: newMicro.length + 1, a: 0, b: 0 });
+                                    const nextState = updateBracketMatch(matches, match.id, match.score1, match.score2, newMicro, players, match.winnerId, match.status);
+                                    saveMatches(nextState, match.id);
+                                }}>
+                                +SET
+                            </button>
+                        )}
                     </div>
 
-                    {/* RIGHT PLAYER ZONE (Player B) */}
-                    <div
-                        className={hoverClass}
-                        style={{ flex: 1, textAlign: 'right', padding: '10px', borderRadius: '8px', ...zoneStyle }}
-                        onClick={(e) => handlePointAction(e, 'b', 1)}
-                        onContextMenu={(e) => handlePointAction(e, 'b', -1)}
-                    >
+                    {/* RIGHT PLAYER VISUALS */}
+                    <div style={{ flex: 1, textAlign: 'right', padding: '10px' }}>
                         <div style={{ fontSize: '1.4rem', fontWeight: 700, lineHeight: 1.2 }}>
                             {p2Name.first} {p2Name.last} <PlayerFlag countryCode={match.player2.country} />
                         </div>
@@ -287,32 +298,18 @@ const Live = () => {
                                 {currentSet.b}
                             </div>
                         )}
-                        {isAuthenticated && isStillPlaying && <div style={{ fontSize: '0.7rem', opacity: 0.3, marginTop: '4px' }}>L-Click (+), R-Click (-)</div>}
+                        {isAuthenticated && isStillPlaying && <div style={{ fontSize: '0.7rem', opacity: 0.3, marginTop: '4px' }}>L-Click(+), R-Click(-)</div>}
                     </div>
                 </div>
 
                 {/* SET HISTORY */}
-                <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', position: 'relative', zIndex: 10, pointerEvents: 'none' }}>
                     {(match.microPoints || []).map((s, idx) => (
                         <div key={idx} style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', opacity: idx === (match.microPoints.length - 1) ? 1 : 0.6 }}>
                             <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.7 }}>SET {s.set}</div>
                             <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{s.a} - {s.b}</div>
                         </div>
                     ))}
-                    {/* Add Set Button - Clean */}
-                    {isAuthenticated && isStillPlaying && (match.microPoints?.length < bestOf) && (
-                        <button onClick={(e) => {
-                            e.stopPropagation();
-                            const newMicro = [...(match.microPoints || [])];
-                            newMicro.push({ set: newMicro.length + 1, a: 0, b: 0 });
-
-                            // Save with new set
-                            const nextState = updateBracketMatch(matches, match.id, match.score1, match.score2, newMicro, players, match.winnerId, match.status);
-                            saveMatches(nextState, match.id);
-                        }} style={{ background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.7)', borderRadius: '4px', padding: '0 12px', cursor: 'pointer', height: '46px', fontSize: '0.8rem' }}>
-                            + SET
-                        </button>
-                    )}
                 </div>
             </div>
         );
@@ -414,8 +411,8 @@ const Live = () => {
                 </div>
             </div>
 
-            {/* QR WIDGET (RESTORED) */}
-            <div className="qr-widget">
+            {/* QR WIDGET */}
+            <div className="qr-widget" style={{ zIndex: 90 }}>
                 <div className="qr-box" style={{ background: 'white', padding: '5px' }}>
                     <QRCodeCanvas
                         value={`${window.location.origin}/live?mode=mobile`}
