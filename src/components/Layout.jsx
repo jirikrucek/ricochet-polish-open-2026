@@ -61,10 +61,13 @@ const Layout = () => {
         <div className="app-container">
             {/* Top Header */}
             <header className="top-header glass">
-                <div className="brand-text">
-                    <span>RICOCHET</span>
-                    <span className="polish-flag-text">POLISH</span>
-                    <span>OPEN 2026</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <img src="/c.png" alt="Logo" style={{ height: '32px' }} />
+                    <div className="brand-text">
+                        <span>RICOCHET</span>
+                        <span className="polish-flag-text">POLISH</span>
+                        <span>OPEN 2026</span>
+                    </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <LanguageSelector />
