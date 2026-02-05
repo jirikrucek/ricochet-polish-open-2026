@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { generateDoubleEliminationBracket, updateBracketMatch } from '../utils/bracketLogic';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { TransformWrapper, TransformComponent, useTransformContext } from 'react-zoom-pan-pinch';
 import { ZoomIn, ZoomOut, RotateCcw, Save, RefreshCw, X } from 'lucide-react';
 import './Brackets.css';
 import { useAuth } from '../hooks/useAuth.tsx';
@@ -21,6 +21,14 @@ const SCORE_MODAL_STYLES = {
         width: '90%', maxWidth: '400px',
         boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
     }
+};
+
+const ResetZoomOnMount = () => {
+    const { resetTransform } = useTransformContext();
+    useEffect(() => {
+        resetTransform();
+    }, []); // Run once on mount
+    return null;
 };
 
 const Brackets = () => {
@@ -96,6 +104,7 @@ const Brackets = () => {
             >
                 {({ zoomIn, zoomOut, resetTransform }) => (
                     <>
+                        <ResetZoomOnMount />
                         <div style={{ position: 'absolute', bottom: '20px', left: '20px', zIndex: 100, display: 'flex', gap: '5px' }}>
                             <button className="btn-icon" onClick={() => zoomIn()}><ZoomIn size={18} /></button>
                             <button className="btn-icon" onClick={() => zoomOut()}><ZoomOut size={18} /></button>
