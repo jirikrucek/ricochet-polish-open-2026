@@ -279,6 +279,7 @@ const Players = () => {
     };
 
     const lastScrollPos = useRef(0);
+    const fileInputRef = useRef(null);
 
     const handlePlayerClick = (player) => {
         lastScrollPos.current = window.scrollY;
