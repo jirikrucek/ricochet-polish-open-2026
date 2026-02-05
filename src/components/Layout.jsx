@@ -79,7 +79,7 @@ const Layout = () => {
                         <span>OPEN 2026</span>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div className="header-actions">
 
                     <button
                         className="theme-toggle"
