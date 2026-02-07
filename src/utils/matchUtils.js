@@ -39,30 +39,68 @@ export const canEditMatch = (match) => {
 };
 
 // Helper to sort matches by ID (semantically: Bracket > Round > Match Number)
-// IDs: wb-r1-m1, lb-r2-m10, gf-m1, etc.
+// IDs: wb-r1-m1, lb-r2-m10, gf-m1, p25-r1-m1, p7-f, etc.
 export const compareMatchIds = (idA, idB) => {
-    // 1. Parse IDs
+    // 1. Parse IDs: handle (bracket)-r(round)-m(match) and special formats
     const parseId = (id) => {
-        // pattern: (bracket)-r(round)-m(match) OR (bracket)-m(match) [for gf]
-        const match = id.match(/^([a-z]+)(?:-r(\d+))?-m(\d+)$/);
-        if (!match) return { bracket: id, round: 999, number: 999 };
+        // Special Finals
+        if (id === 'grand-final') return { bracket: 'gf', round: 100, number: 1 };
+        if (id === 'consolation-final') return { bracket: 'cf', round: 100, number: 1 };
+        if (id === 'lb-final') return { bracket: 'lb', round: 99, number: 1 };
 
-        return {
-            bracket: match[1],
-            round: match[2] ? parseInt(match[2], 10) : (match[1] === 'gf' ? 100 : 0), // GF treated as late round
-            number: parseInt(match[3], 10)
-        };
+        // Handle patterns:
+        // 1. Standard: (bracket)-r(round)-m(match)  e.g. wb-r1-m1, p25-r1-m1
+        // Allow alphanumeric bracket names (e.g. p25)
+        const matchStd = id.match(/^([a-z0-9]+)-r(\d+)-m(\d+)$/);
+        if (matchStd) {
+            return {
+                bracket: matchStd[1],
+                round: parseInt(matchStd[2], 10),
+                number: parseInt(matchStd[3], 10)
+            };
+        }
+
+        // 2. Placement Finals: (bracket)-f  e.g. p25-f
+        const matchFin = id.match(/^([a-z0-9]+)-f$/);
+        if (matchFin) {
+            return {
+                bracket: matchFin[1],
+                round: 99, // Treat as final round
+                number: 1
+            };
+        }
+        
+        // Fallback
+        return { bracket: id, round: 999, number: 999 };
     };
 
     const A = parseId(idA);
     const B = parseId(idB);
 
-    // 2. Compare Bracket Priority (WB < LB < GF)
-    const bracketPriority = { wb: 1, lb: 2, gf: 3 };
-    const pA = bracketPriority[A.bracket] || 99;
-    const pB = bracketPriority[B.bracket] || 99;
+    // 2. Compare Bracket Priority
+    const getBracketScore = (b) => {
+        if (b === 'wb') return 10;
+        if (b === 'lb') return 20;
+        if (b === 'gf') return 100;
+        if (b === 'cf') return 90; // Consolation Final usually before GF
+        
+        // Placement brackets (p25, p13, etc)
+        if (b.startsWith('p')) {
+             // Extract number: p25 -> 25. Sort either by importance (lower is better) or raw ID logic.
+             // Usually p9 > p13 > p17 > p25 in terms of progression? 
+             // Or p25 happens first?
+             // Let's sort by the number to keep them grouped consistently.
+             const num = parseInt(b.slice(1), 10) || 50;
+             return 30 + num; 
+        }
+        // Other
+        return 50; 
+    };
 
-    if (pA !== pB) return pA - pB;
+    const scoreA = getBracketScore(A.bracket);
+    const scoreB = getBracketScore(B.bracket);
+
+    if (scoreA !== scoreB) return scoreA - scoreB;
 
     // 3. Compare Round
     if (A.round !== B.round) return A.round - B.round;
