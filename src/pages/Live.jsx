@@ -8,7 +8,7 @@ import { useMatches } from '../hooks/useMatches';
 import { usePlayers } from '../hooks/usePlayers';
 import { useAuth } from '../hooks/useAuth.tsx';
 import { useTournament } from '../contexts/TournamentContext';
-import { getBestOf, compareMatchIds, checkMatchStatus } from '../utils/matchUtils';
+import { getBestOf, compareMatchIds, checkMatchStatus, getMatchStatus } from '../utils/matchUtils';
 import { updateBracketMatch } from '../utils/bracketLogic';
 import { getCountryCode } from '../constants/countries';
 import './Live.css';
@@ -84,7 +84,7 @@ const Live = () => {
             // DYNAMIC STATUS CALCULATION
             // We cannot rely on m.status from DB being up-to-date (it might say 'scheduled')
             // So we recalculate it based on player presence and scores.
-            const calculatedStatus = checkMatchStatus({
+            const calculatedStatus = getMatchStatus({
                 ...m,
                 winner_id: m.winnerId // map for utility compatibility
             });
@@ -94,8 +94,8 @@ const Live = () => {
             return !m.winnerId && ['live', 'pending'].includes(s);
         }).sort((a, b) => {
             // Sort using calculated status
-            const statusA = checkMatchStatus({ ...a, winner_id: a.winnerId }).toLowerCase();
-            const statusB = checkMatchStatus({ ...b, winner_id: b.winnerId }).toLowerCase();
+            const statusA = getMatchStatus({ ...a, winner_id: a.winnerId }).toLowerCase();
+            const statusB = getMatchStatus({ ...b, winner_id: b.winnerId }).toLowerCase();
 
             // Priority 1: LIVE matches always first
             if (statusA === 'live' && statusB !== 'live') return -1;
