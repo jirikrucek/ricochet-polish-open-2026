@@ -81,24 +81,29 @@ const Live = () => {
         const finished = enriched.filter(m => m.winnerId);
 
         const active = enriched.filter(m => {
-            const s = (m.status || 'pending').toLowerCase();
-            // FILTER: Only show matches where players are known (Ready to play)
-            // This prevents "TBD vs TBD" or "Scheduled" matches from blocking the queue
-            const playersReady = m.player1 && m.player1.id && m.player2 && m.player2.id;
-            const isBye = m.player1.isBye || m.player2.isBye;
+            // DYNAMIC STATUS CALCULATION
+            // We cannot rely on m.status from DB being up-to-date (it might say 'scheduled')
+            // So we recalculate it based on player presence and scores.
+            const calculatedStatus = checkMatchStatus({
+                ...m,
+                winner_id: m.winnerId // map for utility compatibility
+            });
+            const s = calculatedStatus.toLowerCase();
 
-            return !m.winnerId && playersReady && !isBye && ['live', 'pending'].includes(s);
+            // Allow matches that are logically 'live' or 'pending' (ready to play)
+            return !m.winnerId && ['live', 'pending'].includes(s);
         }).sort((a, b) => {
-            const sA = (a.status || '').toLowerCase();
-            const sB = (b.status || '').toLowerCase();
+            // Sort using calculated status
+            const statusA = checkMatchStatus({ ...a, winner_id: a.winnerId }).toLowerCase();
+            const statusB = checkMatchStatus({ ...b, winner_id: b.winnerId }).toLowerCase();
 
             // Priority 1: LIVE matches always first
-            if (sA === 'live' && sB !== 'live') return -1;
-            if (sA !== 'live' && sB === 'live') return 1;
+            if (statusA === 'live' && statusB !== 'live') return -1;
+            if (statusA !== 'live' && statusB === 'live') return 1;
 
             // Priority 2: PENDING (ready with players) before SCHEDULED (waiting)
-            const isReadyA = (sA === 'pending');
-            const isReadyB = (sB === 'pending');
+            const isReadyA = (statusA === 'pending');
+            const isReadyB = (statusB === 'pending');
             if (isReadyA && !isReadyB) return -1;
             if (!isReadyA && isReadyB) return 1;
 
