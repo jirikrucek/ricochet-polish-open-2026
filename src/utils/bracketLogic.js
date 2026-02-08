@@ -555,18 +555,19 @@ export const generateDoubleEliminationBracket = (players) => rebuildBracketState
 export const updateBracketMatch = (matches, matchId, score1, score2, microPoints = [], playersSource, winnerId = null, status = 'live') => {
     const resultsMap = {};
     matches.forEach(m => {
-        if (m.score1 !== null || m.score2 !== null || m.winnerId) {
-            resultsMap[m.id] = {
-                score1: m.score1,
-                score2: m.score2,
-                micro_points: m.microPoints,
-                winnerId: m.winnerId,
-                status: m.status
-            };
-        }
+        resultsMap[m.id] = {
+            score1: m.score1,
+            score2: m.score2,
+            micro_points: m.microPoints,
+            winnerId: m.winnerId,
+            status: m.status,
+            manualOrder: m.manualOrder,
+            court: m.court
+        };
     });
 
     resultsMap[matchId] = {
+        ...resultsMap[matchId],
         score1: Number(score1),
         score2: Number(score2),
         micro_points: microPoints,
@@ -580,15 +581,28 @@ export const updateBracketMatch = (matches, matchId, score1, score2, microPoints
 export const clearBracketMatch = (matches, matchId, playersSource) => {
     const resultsMap = {};
     matches.forEach(m => {
-        if (m.id !== matchId && (m.score1 !== null || m.score2 !== null)) {
-            resultsMap[m.id] = {
-                score1: m.score1,
-                score2: m.score2,
-                micro_points: m.microPoints,
-                winnerId: m.winnerId,
-                status: m.status
-            };
-        }
+        resultsMap[m.id] = {
+            score1: m.score1,
+            score2: m.score2,
+            micro_points: m.microPoints,
+            winnerId: m.winnerId,
+            status: m.status,
+            manualOrder: m.manualOrder,
+            court: m.court
+        };
     });
+
+    // Explicitly reset the target match in the map
+    if (resultsMap[matchId]) {
+        resultsMap[matchId] = {
+            ...resultsMap[matchId],
+            score1: null,
+            score2: null,
+            micro_points: [],
+            winnerId: null,
+            status: 'pending' // Default back to pending
+        };
+    }
+
     return rebuildBracketState(playersSource, resultsMap);
 };
