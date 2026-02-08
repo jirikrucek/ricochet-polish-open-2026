@@ -35,7 +35,8 @@ export const MatchesProvider = ({ children }) => {
             microPoints: mp,
             winnerId: m.winner_id,
             status: m.status,
-            court: m.court
+            court: m.court,
+            manualOrder: m.manual_order
         };
     };
 
@@ -51,7 +52,8 @@ export const MatchesProvider = ({ children }) => {
         micro_points: JSON.stringify(m.microPoints || []),
         winner_id: m.winnerId || null,
         status: m.status || 'pending',
-        court: m.court || ""
+        court: m.court || "",
+        manual_order: m.manualOrder ?? null
     });
 
     // Ref to track saving state to prevent snapshot racing/echoes

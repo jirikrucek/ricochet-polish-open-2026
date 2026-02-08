@@ -269,8 +269,9 @@ const Matches = () => {
     const [editingMatch, setEditingMatch] = useState(null);
     const { isAuthenticated } = useAuth();
 
+
     const processedMatches = useMemo(() => {
-        if (!matches || matches.length === 0) return { active: [], pending: [], finished: [] };
+        if (!matches || matches.length === 0) return { active: [], pending: [], finished: [], pinkQueue: [], cyanQueue: [] };
 
         // 1. Enrich Matches with Player Data
         const enriched = matches.map(m => {
@@ -291,7 +292,6 @@ const Matches = () => {
         }).filter(m => m.player1Id && m.player2Id && !m.player1.isBye && !m.player2.isBye);
 
         // 2. Filter by Status
-        // Explicitly check for 'live' status from the data or inferred
         const active = enriched.filter(m => m.status === 'live');
 
         // Sort pending matches by manualOrder then ID
@@ -306,7 +306,26 @@ const Matches = () => {
 
         const finished = enriched.filter(m => m.status === 'finished').reverse();
 
-        return { active, pending, finished };
+        // 3. Split Pending into Queues
+        const pinkQueue = [];
+        const cyanQueue = [];
+        pending.forEach((m) => {
+            const cUpper = (m.court || '').toUpperCase();
+            const isPink = cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK');
+            const isCyan = cUpper.includes('TURKUSOWY') || cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('CYAN');
+
+            if (isPink) {
+                pinkQueue.push(m);
+            } else if (isCyan) {
+                cyanQueue.push(m);
+            } else {
+                // Default distribution if no court assigned (Balance Queues)
+                if (pinkQueue.length <= cyanQueue.length) pinkQueue.push(m);
+                else cyanQueue.push(m);
+            }
+        });
+
+        return { active, pending, finished, pinkQueue, cyanQueue };
     }, [matches, players]);
 
     const handleSaveScore = (matchId, data, options = {}) => {
@@ -377,415 +396,279 @@ const Matches = () => {
     };
 
     const handleMoveMatch = (matchId, direction) => {
-        const pending = processedMatches.pending;
-        const currentIndex = pending.findIndex(m => m.id === matchId);
+        const { pinkQueue, cyanQueue } = processedMatches;
+
+        // 1. Identify which queue contains the match
+        let targetQueue = null;
+        if (pinkQueue.find(m => m.id === matchId)) targetQueue = pinkQueue;
+        else if (cyanQueue.find(m => m.id === matchId)) targetQueue = cyanQueue;
+
+        if (!targetQueue) return;
+
+        // 2. Find index in that specific queue
+        const currentIndex = targetQueue.findIndex(m => m.id === matchId);
         if (currentIndex === -1) return;
 
         const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-        if (targetIndex < 0 || targetIndex >= pending.length) return;
+        if (targetIndex < 0 || targetIndex >= targetQueue.length) return;
 
-        // Create a copy of matches to update
-        const newMatches = [...matches];
+        // 3. Identify the neighbor match to swap with
+        const matchA = targetQueue[currentIndex];
+        const matchB = targetQueue[targetIndex];
 
-        const processedMatches = useMemo(() => {
-            if (!matches || matches.length === 0) return { active: [], pending: [], finished: [], pinkQueue: [], cyanQueue: [] };
+        // Create a update map for ALL pending matches to ensure baseline order exists
+        const updates = new Map();
+        const allPending = processedMatches.pending; // Currently sorted global list
 
-            // 1. Enrich Matches with Player Data
-            const enriched = matches.map(m => {
-                const p1 = players.find(p => p.id === m.player1Id);
-                const p2 = players.find(p => p.id === m.player2Id);
-                return {
-                    ...m,
-                    player1: p1 || { full_name: 'TBD', id: null, isBye: false },
-                    player2: p2 || { full_name: 'TBD', id: null, isBye: false },
-                    status: getMatchStatus({
-                        ...m,
-                        winner_id: m.winnerId,
-                        player1: p1 || { id: null },
-                        player2: p2 || { id: null }
-                    }),
-                    canEdit: (p1 && p2 && !p1.isBye && !p2.isBye)
-                };
-            }).filter(m => m.player1Id && m.player2Id && !m.player1.isBye && !m.player2.isBye);
+        // Base numbering: assign 100, 200, 300 based on current global sorted order
+        allPending.forEach((m, idx) => {
+            // Use existing manualOrder if present, otherwise generate one
+            const currentVal = m.manualOrder !== undefined ? m.manualOrder : idx * 100;
+            updates.set(m.id, currentVal);
+        });
 
-            // 2. Filter by Status
-            const active = enriched.filter(m => m.status === 'live');
+        // 4. Swap the manualOrder values of the two matches involved
+        const orderA = updates.get(matchA.id);
+        const orderB = updates.get(matchB.id);
 
-            // Sort pending matches by manualOrder then ID
-            const pending = enriched.filter(m => m.status === 'pending').sort((a, b) => {
-                if (a.manualOrder !== undefined || b.manualOrder !== undefined) {
-                    const oa = a.manualOrder ?? Number.MAX_SAFE_INTEGER;
-                    const ob = b.manualOrder ?? Number.MAX_SAFE_INTEGER;
-                    if (oa !== ob) return oa - ob;
-                }
-                return compareMatchIds(a.id, b.id);
-            });
+        updates.set(matchA.id, orderB);
+        updates.set(matchB.id, orderA);
 
-            const finished = enriched.filter(m => m.status === 'finished').reverse();
-
-            // 3. Split Pending into Queues
-            const pinkQueue = [];
-            const cyanQueue = [];
-            pending.forEach((m) => {
-                const cUpper = (m.court || '').toUpperCase();
-                const isPink = cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK');
-                const isCyan = cUpper.includes('TURKUSOWY') || cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('CYAN');
-
-                if (isPink) {
-                    pinkQueue.push(m);
-                } else if (isCyan) {
-                    cyanQueue.push(m);
-                } else {
-                    // Default distribution if no court assigned (Balance Queues)
-                    if (pinkQueue.length <= cyanQueue.length) pinkQueue.push(m);
-                    else cyanQueue.push(m);
-                }
-            });
-
-            return { active, pending, finished, pinkQueue, cyanQueue };
-        }, [matches, players]);
-
-        const handleSaveScore = (matchId, data, options = {}) => {
-            const status = data.forceFinished ? 'finished' : 'live';
-            const newState = updateBracketMatch(matches, matchId, data.score1, data.score2, data.microPoints, players, data.winnerId, status);
-
-            const finalState = newState.map(m => {
-                if (m.id === matchId) return { ...m, court: data.court };
-                const old = matches.find(oldM => oldM.id === m.id);
-                return { ...m, court: old?.court || m.court };
-            });
-
-            saveMatches(finalState, matchId);
-
-            if (!options.autoSave) {
-                setEditingMatch(null);
+        // 5. Apply to master list
+        const newMatches = matches.map(m => {
+            if (updates.has(m.id)) {
+                return { ...m, manualOrder: updates.get(m.id) };
             }
-        };
+            return m;
+        });
 
-        const handleClearScore = (matchId) => {
-            const resetMatches = clearBracketMatch(matches, matchId, players);
-            saveMatches(resetMatches);
-            setEditingMatch(null);
-        };
+        saveMatches(newMatches);
+    };
 
-        // --- RENDERERS ---
+    const renderMatchRow = (match, index, queueType = null) => {
+        const isWB = match.bracket === 'wb';
+        const isGF = match.bracket === 'gf';
+        const bracketClass = isGF ? 'gf' : (isWB ? 'wb' : 'lb');
+        const bracketLabel = isGF ? t('matches.bracketFinal') : (isWB ? t('matches.bracketWinners') : t('matches.bracketLosers'));
 
-        const renderActiveMatch = (match, index) => {
+        // Determine court color (predictive or assigned)
+        let colorType = queueType;
+        if (!colorType) {
             const cUpper = (match.court || '').toUpperCase();
-            const isPink = cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK') || (!match.court && index % 2 === 0);
-            const accentColor = isPink ? 'var(--accent-pink)' : 'var(--accent-cyan)';
-
-            return (
-                <div key={match.id} className="active-match-card" style={{ '--accent-color': accentColor }}>
-                    <div className="active-match-header">
-                        <span style={{ color: accentColor }}>{match.court || (isPink ? t('live.courtPinkLabel') : t('live.courtCyanLabel'))}</span>
-                        <span className="live-badge">{t('live.liveBadge')}</span>
-                    </div>
-
-                    <div className="active-score-board">
-                        <div className="active-player left">
-                            <PlayerFlag countryCode={match.player1.country} />
-                            <span className="active-player-name">{match.player1.full_name}</span>
-                        </div>
-                        <div className="active-set-score">{match.score1 ?? 0}</div>
-                        <div className="vs-divider">:</div>
-                        <div className="active-set-score">{match.score2 ?? 0}</div>
-                        <div className="active-player right">
-                            <PlayerFlag countryCode={match.player2.country} />
-                            <span className="active-player-name">{match.player2.full_name}</span>
-                        </div>
-                    </div>
-
-                    <div style={{ textAlign: 'center', fontSize: '0.8rem', opacity: 0.6 }}>
-                        {(match.bracket || '').toUpperCase()} ROUND {match.round} • MATCH {match.id.split('-m')[1]}
-                    </div>
-
-                    {isAuthenticated && (
-                        <div className="active-actions">
-                            <button className="edit-btn" onClick={() => setEditingMatch(match)} style={{ borderColor: accentColor, color: accentColor }}>
-                                <Edit2 size={16} style={{ marginRight: '6px' }} /> {t('matches.controlMatch')}
-                            </button>
-                        </div>
-
-                    )}
-                </div>
-            );
-        };
-
-        const handleMoveMatch = (matchId, direction) => {
-            const { pinkQueue, cyanQueue } = processedMatches;
-
-            // 1. Identify which queue contains the match
-            let targetQueue = null;
-            if (pinkQueue.find(m => m.id === matchId)) targetQueue = pinkQueue;
-            else if (cyanQueue.find(m => m.id === matchId)) targetQueue = cyanQueue;
-
-            if (!targetQueue) return;
-
-            // 2. Find index in that specific queue
-            const currentIndex = targetQueue.findIndex(m => m.id === matchId);
-            if (currentIndex === -1) return;
-
-            const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-            if (targetIndex < 0 || targetIndex >= targetQueue.length) return;
-
-            // 3. Identify the neighbor match to swap with
-            const matchA = targetQueue[currentIndex];
-            const matchB = targetQueue[targetIndex];
-
-            // Create a update map for ALL pending matches to ensure baseline order exists
-            const updates = new Map();
-            const allPending = processedMatches.pending; // Currently sorted global list
-
-            // Base numbering: assign 100, 200, 300 based on current global sorted order
-            allPending.forEach((m, idx) => {
-                // Use existing manualOrder if present, otherwise generate one
-                const currentVal = m.manualOrder !== undefined ? m.manualOrder : idx * 100;
-                updates.set(m.id, currentVal);
-            });
-
-            // 4. Swap the manualOrder values of the two matches involved
-            const orderA = updates.get(matchA.id);
-            const orderB = updates.get(matchB.id);
-
-            updates.set(matchA.id, orderB);
-            updates.set(matchB.id, orderA);
-
-            // 5. Apply to master list
-            const newMatches = matches.map(m => {
-                if (updates.has(m.id)) {
-                    return { ...m, manualOrder: updates.get(m.id) };
-                }
-                return m;
-            });
-
-            saveMatches(newMatches);
-        };
-
-        const renderMatchRow = (match, index, queueType = null) => {
-            const isWB = match.bracket === 'wb';
-            const isGF = match.bracket === 'gf';
-            const bracketClass = isGF ? 'gf' : (isWB ? 'wb' : 'lb');
-            const bracketLabel = isGF ? t('matches.bracketFinal') : (isWB ? t('matches.bracketWinners') : t('matches.bracketLosers'));
-
-            // Determine court color (predictive or assigned)
-            let colorType = queueType;
-            if (!colorType) {
-                const cUpper = (match.court || '').toUpperCase();
-                if (cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK')) colorType = 'pink';
-                else if (cUpper.includes('TURKUSOWY') || cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('CYAN')) colorType = 'cyan';
-                else colorType = index % 2 === 0 ? 'pink' : 'cyan';
-            }
-
-            const rowBorderColor = colorType === 'pink' ? 'var(--accent-pink)' : 'var(--accent-cyan)';
-            const isPending = match.status === 'pending';
-            const showControls = isPending && isAuthenticated;
-
-            // Adjust grid columns if controls are present: add 25px column at start
-            // Default CSS is: 40px 100px 1fr 40px (ID | Bracket | Players | Action)
-            const gridStyle = {
-                borderLeft: `4px solid ${rowBorderColor}`,
-                gridTemplateColumns: showControls ? '25px 40px 90px 1fr 40px' : '40px 100px 1fr 40px'
-            };
-
-            return (
-                <div key={match.id} className="match-list-row" style={gridStyle}>
-                    {showControls && (
-                        <div style={{ display: 'flex', flexDirection: 'column', marginRight: '4px', justifyContent: 'center' }}>
-                            <button
-                                className="icon-btn-small"
-                                onClick={() => handleMoveMatch(match.id, 'up')}
-                                style={{ padding: 0, lineHeight: 0.8, marginBottom: '2px', opacity: 0.7 }}
-                                title="Move Up"
-                            >
-                                <span style={{ fontSize: '0.7rem' }}>▲</span>
-                            </button>
-                            <button
-                                className="icon-btn-small"
-                                onClick={() => handleMoveMatch(match.id, 'down')}
-                                style={{ padding: 0, lineHeight: 0.8, opacity: 0.7 }}
-                                title="Move Down"
-                            >
-                                <span style={{ fontSize: '0.7rem' }}>▼</span>
-                            </button>
-                        </div>
-                    )}
-                    <div className="row-id" style={{ color: rowBorderColor }}>#{match.id.split('-m')[1]}</div>
-                    <div className="row-bracket">
-                        <span className={`bracket-badge ${bracketClass}`}>{bracketLabel}</span>
-                        <span style={{ opacity: 0.5 }}>R{match.round}</span>
-                        {(() => {
-                            let courtBadge = null;
-                            if (match.court) {
-                                const cUpper = match.court.toUpperCase();
-                                const isPink = cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK');
-                                const isCyan = cUpper.includes('TURKUSOWY') || cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('CYAN');
-                                const courtName = isPink ? 'LEFT' : (isCyan ? 'RIGHT' : 'CRT');
-                                // ... style ...
-                                const badgeStyle = {
-                                    fontSize: '0.65rem',
-                                    fontWeight: '800',
-                                    padding: '1px 5px',
-                                    borderRadius: '4px',
-                                    marginLeft: '6px',
-                                    backgroundColor: isPink ? 'rgba(236, 72, 153, 0.15)' : (isCyan ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255,255,255,0.1)'),
-                                    color: isPink ? 'var(--accent-pink)' : (isCyan ? 'var(--accent-cyan)' : 'var(--text-secondary)'),
-                                    border: `1px solid ${isPink ? 'var(--accent-pink)' : (isCyan ? 'var(--accent-cyan)' : 'var(--border-color)')}`,
-                                    whiteSpace: 'nowrap',
-                                    display: 'inline-block',
-                                    lineHeight: '1'
-                                };
-                                return <span style={badgeStyle} title={match.court}>{courtName}</span>;
-                            }
-                            return null;
-                        })()}
-                    </div>
-
-                    <div className="row-players">
-                        <div className="list-player p1">
-                            <span style={{ color: 'white' }}>{formatName(match.player1)}</span>
-                            <PlayerFlag countryCode={match.player1.country} />
-                        </div>
-                        {match.status === 'finished' ? (
-                            <div className="list-score">{match.score1} : {match.score2}</div>
-                        ) : (
-                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>vs</div>
-                        )}
-                        <div className="list-player p2">
-                            <PlayerFlag countryCode={match.player2.country} />
-                            <span style={{ color: 'white' }}>{formatName(match.player2)}</span>
-                        </div>
-                    </div>
-
-                    <div className="row-action">
-                        {isAuthenticated && (
-                            <button className="edit-icon-btn" onClick={() => setEditingMatch(match)} title="Edit">
-                                <Edit2 size={16} />
-                            </button>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        if (!matches || matches.length === 0) {
-            return (
-                <div className="matches-container animate-fade-in">
-                    <div className="empty-matches">
-                        <h2>{t('matches.noActiveMatches')}</h2>
-                        <p>{t('matches.generatePrompt')}</p>
-                        {isAuthenticated && (
-                            <div style={{ marginTop: '1.5rem' }}>
-                                <p style={{ marginBottom: '1rem', fontSize: '0.9rem', opacity: 0.7 }}>
-                                    {t('matches.registeredPlayers')}: <strong>{players.length}</strong>
-                                </p>
-                                <button
-                                    onClick={async () => {
-                                        if (players.length < 2) {
-                                            alert(t('matches.needPlayers'));
-                                            return;
-                                        }
-                                        if (window.confirm(t('matches.generateConfirm', { count: players.length }))) {
-                                            const newBracket = generateDoubleEliminationBracket(players);
-                                            await saveMatches(newBracket);
-                                            if (activeTournamentId) {
-                                                await updateTournament(activeTournamentId, { status: 'in_progress' });
-                                            }
-                                        }
-                                    }}
-                                    className="btn-primary"
-                                >
-                                    <Trophy size={18} style={{ marginRight: '0.5rem' }} />
-                                    {t('matches.generateBtn')}
-                                </button>
-                            </div>
-                        )}
-                        {!isAuthenticated && (
-                            <p style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.7 }}>{t('matches.loginPrompt')}</p>
-                        )}
-                    </div>
-                </div>
-            );
+            if (cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK')) colorType = 'pink';
+            else if (cUpper.includes('TURKUSOWY') || cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('CYAN')) colorType = 'cyan';
+            else colorType = index % 2 === 0 ? 'pink' : 'cyan';
         }
 
+        const rowBorderColor = colorType === 'pink' ? 'var(--accent-pink)' : 'var(--accent-cyan)';
+        const isPending = match.status === 'pending';
+        const showControls = isPending && isAuthenticated;
+
+        // Adjust grid columns if controls are present: add 25px column at start
+        // Default CSS is: 40px 100px 1fr 40px (ID | Bracket | Players | Action)
+        const gridStyle = {
+            borderLeft: `4px solid ${rowBorderColor}`,
+            gridTemplateColumns: showControls ? '25px 40px 90px 1fr 40px' : '40px 100px 1fr 40px'
+        };
+
         return (
-            <div className="matches-container animate-fade-in">
-                <div className="matches-header">
-                    <h1 className="matches-title text-gradient">{t('matches.title')}</h1>
-                    <div className="matches-filters">
-                        <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>{t('matches.filters.all')}</button>
-                        <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>{t('matches.filters.pending')}</button>
-                        <button className={`filter-btn ${filter === 'finished' ? 'active' : ''}`} onClick={() => setFilter('finished')}>{t('matches.filters.finished')}</button>
+            <div key={match.id} className="match-list-row" style={gridStyle}>
+                {showControls && (
+                    <div style={{ display: 'flex', flexDirection: 'column', marginRight: '4px', justifyContent: 'center' }}>
+                        <button
+                            className="icon-btn-small"
+                            onClick={() => handleMoveMatch(match.id, 'up')}
+                            style={{ padding: 0, lineHeight: 0.8, marginBottom: '2px', opacity: 0.7 }}
+                            title="Move Up"
+                        >
+                            <span style={{ fontSize: '0.7rem' }}>▲</span>
+                        </button>
+                        <button
+                            className="icon-btn-small"
+                            onClick={() => handleMoveMatch(match.id, 'down')}
+                            style={{ padding: 0, lineHeight: 0.8, opacity: 0.7 }}
+                            title="Move Down"
+                        >
+                            <span style={{ fontSize: '0.7rem' }}>▼</span>
+                        </button>
+                    </div>
+                )}
+                <div className="row-id" style={{ color: rowBorderColor }}>#{match.id.split('-m')[1]}</div>
+                <div className="row-bracket">
+                    <span className={`bracket-badge ${bracketClass}`}>{bracketLabel}</span>
+                    <span style={{ opacity: 0.5 }}>R{match.round}</span>
+                    {(() => {
+                        let courtBadge = null;
+                        if (match.court) {
+                            const cUpper = match.court.toUpperCase();
+                            const isPink = cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK');
+                            const isCyan = cUpper.includes('TURKUSOWY') || cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('CYAN');
+                            const courtName = isPink ? 'LEFT' : (isCyan ? 'RIGHT' : 'CRT');
+                            // ... style ...
+                            const badgeStyle = {
+                                fontSize: '0.65rem',
+                                fontWeight: '800',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                marginLeft: '6px',
+                                backgroundColor: isPink ? 'rgba(236, 72, 153, 0.15)' : (isCyan ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255,255,255,0.1)'),
+                                color: isPink ? 'var(--accent-pink)' : (isCyan ? 'var(--accent-cyan)' : 'var(--text-secondary)'),
+                                border: `1px solid ${isPink ? 'var(--accent-pink)' : (isCyan ? 'var(--accent-cyan)' : 'var(--border-color)')}`,
+                                whiteSpace: 'nowrap',
+                                display: 'inline-block',
+                                lineHeight: '1'
+                            };
+                            return <span style={badgeStyle} title={match.court}>{courtName}</span>;
+                        }
+                        return null;
+                    })()}
+                </div>
+
+                <div className="row-players">
+                    <div className="list-player p1">
+                        <span style={{ color: 'white' }}>{formatName(match.player1)}</span>
+                        <PlayerFlag countryCode={match.player1.country} />
+                    </div>
+                    {match.status === 'finished' ? (
+                        <div className="list-score">{match.score1} : {match.score2}</div>
+                    ) : (
+                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>vs</div>
+                    )}
+                    <div className="list-player p2">
+                        <PlayerFlag countryCode={match.player2.country} />
+                        <span style={{ color: 'white' }}>{formatName(match.player2)}</span>
                     </div>
                 </div>
 
-                {/* 1. Live Arena */}
-                {(processedMatches.active.length > 0) && (filter === 'all' || filter === 'pending') && (
-                    <section>
-                        <div className="section-header">
-                            <Activity size={20} color="#ef4444" /> {t('matches.liveArena')}
-                        </div>
-                        <div className="active-matches-grid">
-                            {processedMatches.active.map((m, i) => renderActiveMatch(m, i))}
-                        </div>
-                    </section>
-                )}
-
-                {/* 2. Upcoming / Pending List - COLUMNS */}
-                {(processedMatches.pending.length > 0) && (filter === 'all' || filter === 'pending') && (
-                    <section>
-                        <div className="section-header">
-                            <Clock size={20} /> {t('matches.nextMatches')}
-                        </div>
-
-                        <div className="queue-columns">
-                            {/* PINK COLUMN */}
-                            <div className="queue-column">
-                                <h3 style={{ color: 'var(--accent-pink)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', paddingLeft: '0.5rem', borderLeft: '3px solid var(--accent-pink)' }}>
-                                    {t('live.pinkQueue')}
-                                </h3>
-                                {processedMatches.pinkQueue.length === 0 && <div className="empty-state-text" style={{ padding: '1rem', fontSize: '0.8rem' }}>Default queue empty</div>}
-                                {processedMatches.pinkQueue.map((m, idx) => renderMatchRow(m, idx, 'pink'))}
-                            </div>
-
-                            {/* CYAN COLUMN */}
-                            <div className="queue-column">
-                                <h3 style={{ color: 'var(--accent-cyan)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', paddingLeft: '0.5rem', borderLeft: '3px solid var(--accent-cyan)' }}>
-                                    {t('live.cyanQueue')}
-                                </h3>
-                                {processedMatches.cyanQueue.length === 0 && <div className="empty-state-text" style={{ padding: '1rem', fontSize: '0.8rem' }}>Default queue empty</div>}
-                                {processedMatches.cyanQueue.map((m, idx) => renderMatchRow(m, idx, 'cyan'))}
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                {/* 3. Finished Matches List */}
-                {(processedMatches.finished.length > 0) && (filter === 'all' || filter === 'finished') && (
-                    <section>
-                        <div className="section-header">
-                            <CheckCircle size={20} color="#10b981" /> {t('matches.played')}
-                        </div>
-                        <div className="match-list-container">
-                            {processedMatches.finished.map(m => renderMatchRow(m))}
-                        </div>
-                    </section>
-                )}
-
-                {(processedMatches.active.length === 0 && processedMatches.pending.length === 0 && processedMatches.finished.length === 0) && (
-                    <div className="empty-state-text">{t('matches.allFinished')}</div>
-                )}
-
-                {editingMatch && (
-                    <MatchEditModal
-                        match={editingMatch}
-                        onClose={() => setEditingMatch(null)}
-                        onSave={handleSaveScore}
-                        onClear={handleClearScore}
-                    />
-                )}
+                <div className="row-action">
+                    {isAuthenticated && (
+                        <button className="edit-icon-btn" onClick={() => setEditingMatch(match)} title="Edit">
+                            <Edit2 size={16} />
+                        </button>
+                    )}
+                </div>
             </div>
         );
     };
 
-    export default Matches;
+    if (!matches || matches.length === 0) {
+        return (
+            <div className="matches-container animate-fade-in">
+                <div className="empty-matches">
+                    <h2>{t('matches.noActiveMatches')}</h2>
+                    <p>{t('matches.generatePrompt')}</p>
+                    {isAuthenticated && (
+                        <div style={{ marginTop: '1.5rem' }}>
+                            <p style={{ marginBottom: '1rem', fontSize: '0.9rem', opacity: 0.7 }}>
+                                {t('matches.registeredPlayers')}: <strong>{players.length}</strong>
+                            </p>
+                            <button
+                                onClick={async () => {
+                                    if (players.length < 2) {
+                                        alert(t('matches.needPlayers'));
+                                        return;
+                                    }
+                                    if (window.confirm(t('matches.generateConfirm', { count: players.length }))) {
+                                        const newBracket = generateDoubleEliminationBracket(players);
+                                        await saveMatches(newBracket);
+                                        if (activeTournamentId) {
+                                            await updateTournament(activeTournamentId, { status: 'in_progress' });
+                                        }
+                                    }
+                                }}
+                                className="btn-primary"
+                            >
+                                <Trophy size={18} style={{ marginRight: '0.5rem' }} />
+                                {t('matches.generateBtn')}
+                            </button>
+                        </div>
+                    )}
+                    {!isAuthenticated && (
+                        <p style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.7 }}>{t('matches.loginPrompt')}</p>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="matches-container animate-fade-in">
+            <div className="matches-header">
+                <h1 className="matches-title text-gradient">{t('matches.title')}</h1>
+                <div className="matches-filters">
+                    <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>{t('matches.filters.all')}</button>
+                    <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>{t('matches.filters.pending')}</button>
+                    <button className={`filter-btn ${filter === 'finished' ? 'active' : ''}`} onClick={() => setFilter('finished')}>{t('matches.filters.finished')}</button>
+                </div>
+            </div>
+
+            {/* 1. Live Arena */}
+            {(processedMatches.active.length > 0) && (filter === 'all' || filter === 'pending') && (
+                <section>
+                    <div className="section-header">
+                        <Activity size={20} color="#ef4444" /> {t('matches.liveArena')}
+                    </div>
+                    <div className="active-matches-grid">
+                        {processedMatches.active.map((m, i) => renderActiveMatch(m, i))}
+                    </div>
+                </section>
+            )}
+
+            {/* 2. Upcoming / Pending List - COLUMNS */}
+            {(processedMatches.pending.length > 0) && (filter === 'all' || filter === 'pending') && (
+                <section>
+                    <div className="section-header">
+                        <Clock size={20} /> {t('matches.nextMatches')}
+                    </div>
+
+                    <div className="queue-columns">
+                        {/* PINK COLUMN */}
+                        <div className="queue-column">
+                            <h3 style={{ color: 'var(--accent-pink)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', paddingLeft: '0.5rem', borderLeft: '3px solid var(--accent-pink)' }}>
+                                {t('live.pinkQueue')}
+                            </h3>
+                            {processedMatches.pinkQueue.length === 0 && <div className="empty-state-text" style={{ padding: '1rem', fontSize: '0.8rem' }}>Default queue empty</div>}
+                            {processedMatches.pinkQueue.map((m, idx) => renderMatchRow(m, idx, 'pink'))}
+                        </div>
+
+                        {/* CYAN COLUMN */}
+                        <div className="queue-column">
+                            <h3 style={{ color: 'var(--accent-cyan)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', paddingLeft: '0.5rem', borderLeft: '3px solid var(--accent-cyan)' }}>
+                                {t('live.cyanQueue')}
+                            </h3>
+                            {processedMatches.cyanQueue.length === 0 && <div className="empty-state-text" style={{ padding: '1rem', fontSize: '0.8rem' }}>Default queue empty</div>}
+                            {processedMatches.cyanQueue.map((m, idx) => renderMatchRow(m, idx, 'cyan'))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* 3. Finished Matches List */}
+            {(processedMatches.finished.length > 0) && (filter === 'all' || filter === 'finished') && (
+                <section>
+                    <div className="section-header">
+                        <CheckCircle size={20} color="#10b981" /> {t('matches.played')}
+                    </div>
+                    <div className="match-list-container">
+                        {processedMatches.finished.map(m => renderMatchRow(m))}
+                    </div>
+                </section>
+            )}
+
+            {(processedMatches.active.length === 0 && processedMatches.pending.length === 0 && processedMatches.finished.length === 0) && (
+                <div className="empty-state-text">{t('matches.allFinished')}</div>
+            )}
+
+            {editingMatch && (
+                <MatchEditModal
+                    match={editingMatch}
+                    onClose={() => setEditingMatch(null)}
+                    onSave={handleSaveScore}
+                    onClear={handleClearScore}
+                />
+            )}
+        </div>
+    );
+};
+
+export default Matches;

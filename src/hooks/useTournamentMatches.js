@@ -19,20 +19,16 @@ export const useTournamentMatches = () => {
         const resultsMap = {};
         rawMatches.forEach(m => {
             // Only map relevant state that drives logic
-            if (m.score1 !== null || m.score2 !== null || m.winnerId) {
+            // map meaningful state including manual overrides/order
+            if (m.score1 !== null || m.score2 !== null || m.winnerId || m.manualOrder !== undefined || m.court) {
                 resultsMap[m.id] = {
                     score1: m.score1,
                     score2: m.score2,
-                    micro_points: m.microPoints, // Ensure this property name matches what rebuild expects (camelCase vs snake_case check?)
-                    // In matchesContext mapToCamel, it's microPoints. 
-                    // rebuildBracketState expects 'microPoints' in the object it builds, 
-                    // but 'resultsMap' usually comes from updateBracketMatch which uses 'micro_points'.
-                    // Let's check rebuildBracketState usage of existingMatchesMap.
-                    // Line 483: newState.microPoints = saved.micro_points || [];
-                    // So we must pass snake_case 'micro_points' here if we want it to persist.
                     micro_points: m.microPoints,
                     winnerId: m.winnerId,
-                    status: m.status
+                    status: m.status,
+                    manualOrder: m.manualOrder,
+                    court: m.court
                 };
             }
         });

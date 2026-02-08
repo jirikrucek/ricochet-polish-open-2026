@@ -471,6 +471,10 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
             }
 
             let newState = { ...match };
+            if (saved) {
+                newState.manualOrder = saved.manualOrder;
+                newState.court = saved.court; // Also persist court assignment if not already handled
+            }
 
             if (autoWinner) {
                 newState.winnerId = autoWinner;
@@ -482,6 +486,7 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
                 newState.score2 = saved.score2;
                 newState.microPoints = saved.micro_points || [];
                 newState.winnerId = saved.winnerId;
+                newState.manualOrder = saved.manualOrder;
 
                 // Auto-determine winner
                 // SCORING LOGIC - STRICT BO3/BO5
