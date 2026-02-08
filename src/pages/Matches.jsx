@@ -437,11 +437,19 @@ const Matches = () => {
 
         const rowBorderColor = colorType === 'pink' ? 'var(--accent-pink)' : 'var(--accent-cyan)';
         const isPending = match.status === 'pending';
+        const showControls = isPending && isAuthenticated;
+
+        // Adjust grid columns if controls are present: add 25px column at start
+        // Default CSS is: 40px 100px 1fr 40px (ID | Bracket | Players | Action)
+        const gridStyle = {
+            borderLeft: `4px solid ${rowBorderColor}`,
+            gridTemplateColumns: showControls ? '25px 40px 90px 1fr 40px' : '40px 100px 1fr 40px'
+        };
 
         return (
-            <div key={match.id} className="match-list-row" style={{ borderLeft: `4px solid ${rowBorderColor}` }}>
-                {isPending && isAuthenticated && (
-                    <div style={{ display: 'flex', flexDirection: 'column', marginRight: '8px', justifyContent: 'center' }}>
+            <div key={match.id} className="match-list-row" style={gridStyle}>
+                {showControls && (
+                    <div style={{ display: 'flex', flexDirection: 'column', marginRight: '4px', justifyContent: 'center' }}>
                         <button
                             className="icon-btn-small"
                             onClick={() => handleMoveMatch(match.id, 'up')}
@@ -471,6 +479,7 @@ const Matches = () => {
                             const isPink = cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK');
                             const isCyan = cUpper.includes('TURKUSOWY') || cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('CYAN');
                             const courtName = isPink ? 'LEFT' : (isCyan ? 'RIGHT' : 'CRT');
+                            // ... style ...
                             const badgeStyle = {
                                 fontSize: '0.65rem',
                                 fontWeight: '800',
@@ -492,7 +501,7 @@ const Matches = () => {
 
                 <div className="row-players">
                     <div className="list-player p1">
-                        <span style={{ color: 'white', overflow: 'visible', textOverflow: 'clip' }}>{formatName(match.player1)}</span>
+                        <span style={{ color: 'white' }}>{formatName(match.player1)}</span>
                         <PlayerFlag countryCode={match.player1.country} />
                     </div>
                     {match.status === 'finished' ? (
@@ -502,7 +511,7 @@ const Matches = () => {
                     )}
                     <div className="list-player p2">
                         <PlayerFlag countryCode={match.player2.country} />
-                        <span style={{ color: 'white', overflow: 'visible', textOverflow: 'clip' }}>{formatName(match.player2)}</span>
+                        <span style={{ color: 'white' }}>{formatName(match.player2)}</span>
                     </div>
                 </div>
 
