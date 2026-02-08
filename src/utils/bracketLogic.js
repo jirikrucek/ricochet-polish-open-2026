@@ -411,6 +411,7 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
         if (saved) {
             m.manualOrder = saved.manualOrder ?? null;
             m.court = saved.court ?? "";
+            m.finishedAt = saved.finishedAt ?? null;
         }
     });
 
@@ -562,6 +563,7 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
                 newState.status !== match.status ||
                 newState.manualOrder !== match.manualOrder ||
                 newState.court !== match.court ||
+                newState.finishedAt !== match.finishedAt ||
                 JSON.stringify(newState.microPoints) !== JSON.stringify(match.microPoints)
             ) {
                 Object.assign(match, newState);
@@ -591,17 +593,20 @@ export const updateBracketMatch = (matches, matchId, score1, score2, microPoints
             winnerId: m.winnerId,
             status: m.status,
             manualOrder: m.manualOrder,
-            court: m.court
+            court: m.court,
+            finishedAt: m.finishedAt
         };
     });
 
+    const prev = resultsMap[matchId] || {};
     resultsMap[matchId] = {
-        ...resultsMap[matchId],
+        ...prev,
         score1: Number(score1),
         score2: Number(score2),
         micro_points: microPoints,
         winnerId,
-        status
+        status,
+        finishedAt: (status === 'finished' && prev.status !== 'finished') ? Date.now() : prev.finishedAt
     };
 
     return rebuildBracketState(playersSource, resultsMap);

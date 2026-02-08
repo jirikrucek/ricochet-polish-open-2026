@@ -303,7 +303,9 @@ const Matches = () => {
             return compareMatchIds(a.id, b.id);
         });
 
-        const finished = enriched.filter(m => m.status === 'finished').reverse();
+        const finished = enriched
+            .filter(m => m.status === 'finished')
+            .sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
 
         // 3. Split Pending into Queues
         const pinkQueue = [];

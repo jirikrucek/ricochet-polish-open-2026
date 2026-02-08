@@ -154,10 +154,13 @@ const Live = () => {
             else cyan.push(mWithCourt);
         });
 
-        const recentFn = finished.map((m, i) => ({
-            ...m,
-            assignedCourt: i % 2 === 0 ? 'courtPink' : 'courtCyan'
-        })).reverse().slice(0, 4);
+        const recentFn = finished
+            .sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0))
+            .slice(0, 4)
+            .map((m, i) => ({
+                ...m,
+                assignedCourt: i % 2 === 0 ? 'courtPink' : 'courtCyan'
+            }));
 
         return { pinkQueue: pink, cyanQueue: cyan, finishedMatches: recentFn };
     }, [matches, players]);

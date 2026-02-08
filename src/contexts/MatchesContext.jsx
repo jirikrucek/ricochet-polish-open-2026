@@ -36,7 +36,8 @@ export const MatchesProvider = ({ children }) => {
             winnerId: m.winner_id,
             status: m.status,
             court: m.court,
-            manualOrder: m.manual_order
+            manualOrder: m.manual_order,
+            finishedAt: m.finished_at
         };
     };
 
@@ -53,7 +54,8 @@ export const MatchesProvider = ({ children }) => {
         winner_id: m.winnerId || null,
         status: m.status || 'pending',
         court: m.court || "",
-        manual_order: m.manualOrder !== undefined ? m.manualOrder : null
+        manual_order: m.manualOrder !== undefined ? m.manualOrder : null,
+        finished_at: m.finishedAt || null
     });
 
     // Ref to track saving state to prevent snapshot racing/echoes
@@ -163,6 +165,7 @@ export const MatchesProvider = ({ children }) => {
                     if (p.score1 !== oldSnake.score1 || p.score2 !== oldSnake.score2) return true;
                     if (p.status !== oldSnake.status) return true;
                     if (p.micro_points !== oldSnake.micro_points) return true;
+                    if (p.finished_at !== oldSnake.finished_at) return true;
 
                     return false;
                 });
