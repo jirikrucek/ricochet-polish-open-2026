@@ -524,6 +524,11 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
             } else {
                 newState.status = (match.player1Id && match.player2Id) ? 'pending' : 'scheduled';
                 newState.winnerId = null;
+                // Preserve potential saved state for pending matches
+                if (saved) {
+                    newState.manualOrder = saved.manualOrder;
+                    newState.court = saved.court;
+                }
             }
 
             if (

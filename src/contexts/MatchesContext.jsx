@@ -152,9 +152,18 @@ export const MatchesProvider = ({ children }) => {
                 changesToSave = payload.filter(p => {
                     const old = currentMatches.find(m => m.id === p.id);
                     if (!old) return true;
-                    // Deep compare via JSON (simple & effective for this data size)
+
                     const oldSnake = mapToSnake(old);
-                    return JSON.stringify(oldSnake) !== JSON.stringify(p);
+
+                    // Explicit check for manual_order to avoid JSON stringify subtleties
+                    if (p.manual_order !== oldSnake.manual_order) return true;
+                    if (p.court !== oldSnake.court) return true;
+                    if (p.winner_id !== oldSnake.winner_id) return true;
+                    if (p.score1 !== oldSnake.score1 || p.score2 !== oldSnake.score2) return true;
+                    if (p.status !== oldSnake.status) return true;
+                    if (p.micro_points !== oldSnake.micro_points) return true;
+
+                    return false;
                 });
 
                 if (changesToSave.length > 0) {
