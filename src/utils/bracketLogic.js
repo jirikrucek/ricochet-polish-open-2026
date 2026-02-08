@@ -428,6 +428,9 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
         let changed = false;
         sortedMatches.forEach(match => {
             // A. STANDARD SOURCE PULL (Parent -> Child)
+            const oldP1 = match.player1Id;
+            const oldP2 = match.player2Id;
+
             if (match.sourceMatchId1 && !match.player1Id) {
                 const src = matchMap.get(match.sourceMatchId1);
                 if (src && src.winnerId && src.status === 'finished') {
@@ -441,6 +444,16 @@ export const rebuildBracketState = (players, existingMatchesMap = {}) => {
                     const p = match.sourceType2 === 'winner' ? src.winnerId : (src.winnerId === src.player1Id ? src.player2Id : src.player1Id);
                     if (p && match.player2Id !== p) { match.player2Id = p; changed = true; }
                 }
+            }
+
+            // AUTO-QUEUE Logic: If a match just became "ready" (gained both players), 
+            // and it doesn't have a manual order yet, put it at the end of the queue.
+            const isJustReady = (oldP1 === null || oldP2 === null) && (match.player1Id !== null && match.player2Id !== null);
+            if (isJustReady && (match.manualOrder === undefined || match.manualOrder === null)) {
+                // Find current max order to append
+                const maxOrder = Math.max(0, ...allMatches.map(m => m.manualOrder || 0));
+                match.manualOrder = maxOrder + 100;
+                changed = true;
             }
 
             // B. STRICT MAPPING ENFORCEMENT (WB -> LB Overrides)
