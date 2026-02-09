@@ -1,11 +1,9 @@
 .app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    /* Dynamic viewport height for mobile */
-    overflow: hidden;
-    /* Main container does not scroll */
+    min-height: 100vh;
+    /* Allow body scroll */
+    overflow: visible;
 }
 
 /* Header */
@@ -211,13 +209,11 @@
 
 /* Main Content */
 .main-content {
-    padding-top: 150px;
     flex: 1;
-    overflow-y: auto;
     /* Content scrolls here */
     overflow-x: hidden;
     /* No horizontal scroll by default */
-    padding: 2rem;
+    padding: 150px 2rem 2rem 2rem;
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
@@ -258,11 +254,12 @@
     .main-content {
         margin-left: 0;
         margin-top: 0;
-        padding-top: 100px;
+        /* Padding: Top | Right | Bottom | Left */
+        padding: 100px 0.5rem 1rem 0.5rem;
         /* Increased for two-row header */
         margin-bottom: 0;
         /* Bottom-nav is outside this scroll area */
-        padding: 1rem 0.5rem;
+        /* Bottom-nav is outside this scroll area */
     }
 
     .top-header {
