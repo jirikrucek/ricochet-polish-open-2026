@@ -199,11 +199,7 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
                         <span>{matchLabel}</span>
 
                     </div>
-                    {isLive && <span style={{
-                        background: COLOR_PINK, color: 'white', padding: '2px 6px',
-                        borderRadius: '4px', fontSize: '0.6rem', fontWeight: 800,
-                        boxShadow: `0 0 8px ${COLOR_PINK}`
-                    }}>LIVE</span>}
+
                 </div>
 
                 <div style={{ padding: '10px 0' }}>
