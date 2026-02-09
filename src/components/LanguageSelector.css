@@ -10,7 +10,6 @@
     padding: 0.5rem;
     border-radius: 8px;
     color: white !important;
-    /* Force white icon in dark header */
     transition: background-color 0.2s, opacity 0.2s;
 }
 
@@ -32,6 +31,7 @@
     padding: 4px;
     display: flex;
     flex-direction: column;
+    animation: fadeInScale 0.2s ease-out;
 }
 
 [data-theme='dark'] .lang-dropdown {
@@ -46,12 +46,11 @@
     width: 100%;
     padding: 10px 12px;
     border-radius: 8px;
-    background: transparent;
+    background: transparent !important;
     border: none;
     cursor: pointer;
     text-align: left;
     transition: all 0.2s;
-    /* Explicitly set color to avoid header inheritance */
     color: #111827 !important;
 }
 
@@ -60,21 +59,21 @@
 }
 
 .lang-option:hover {
-    background-color: #f3f4f6;
+    background-color: #f3f4f6 !important;
 }
 
 [data-theme='dark'] .lang-option:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 .lang-option.active {
-    background-color: rgba(220, 38, 38, 0.08);
+    background-color: rgba(220, 38, 38, 0.08) !important;
     color: #dc2626 !important;
     font-weight: 600;
 }
 
 [data-theme='dark'] .lang-option.active {
-    background-color: rgba(239, 68, 68, 0.15);
+    background-color: rgba(239, 68, 68, 0.15) !important;
     color: #f87171 !important;
 }
 
@@ -82,18 +81,21 @@
     flex: 1;
     font-size: 0.95rem;
     pointer-events: none;
+    display: block !important;
+    /* Force visibility even if parent hides spans */
+    color: inherit !important;
 }
 
 .lang-check {
-    color: #dc2626;
+    color: #dc2626 !important;
     flex-shrink: 0;
 }
 
 [data-theme='dark'] .lang-check {
-    color: #f87171;
+    color: #f87171 !important;
 }
 
-/* Fix for animation */
+/* Animations */
 @keyframes fadeInScale {
     from {
         opacity: 0;
@@ -106,6 +108,28 @@
     }
 }
 
-.lang-dropdown {
-    animation: fadeInScale 0.2s ease-out;
+@keyframes fadeInScaleMobile {
+    from {
+        opacity: 0;
+        transform: translateX(50%) translateY(-10px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(50%) translateY(0) scale(1);
+    }
+}
+
+/* Mobile Overrides */
+@media (max-width: 768px) {
+    .lang-dropdown {
+        right: 50%;
+        transform: translateX(50%);
+        width: 150px;
+        animation: fadeInScaleMobile 0.2s ease-out;
+    }
+
+    .lang-label {
+        font-size: 0.85rem;
+    }
 }
