@@ -121,6 +121,11 @@
     gap: 1rem;
 }
 
+[data-theme='dark'] .active-match-card {
+    background: linear-gradient(145deg, rgba(31, 41, 55, 0.9), rgba(17, 24, 39, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .active-match-card::after {
     content: '';
     position: absolute;
