@@ -317,22 +317,25 @@
     .header-actions>a,
     .header-actions .lang-toggle-btn {
         padding: 0.35rem !important;
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 50%;
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        border-radius: 50% !important;
     }
 
-    /* Prevent header styles from leaking into dropdown buttons */
-    .header-actions .lang-dropdown button {
-        width: auto !important;
+    /* Force dropdown buttons to NEVER use the icon-only styles */
+    .header-actions .lang-dropdown button.lang-option {
+        width: 100% !important;
         height: auto !important;
         min-width: 0 !important;
-        border-radius: 8px !important;
+        padding: 12px 14px !important;
         justify-content: flex-start !important;
+        border-radius: 8px !important;
+        display: flex !important;
+        text-align: left !important;
     }
 
     .bottom-nav {
