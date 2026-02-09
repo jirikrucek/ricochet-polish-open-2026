@@ -487,12 +487,8 @@ const Matches = () => {
 
         // Base numbering: assign 100, 200, 300 based on current global sorted order
         allPending.forEach((m, idx) => {
-<<<<<<< HEAD
             // Use nullish coalescing to ensure we don't treat null/undefined as a valid "fixed" value
             const currentVal = (m.manualOrder !== undefined && m.manualOrder !== null) ? m.manualOrder : idx * 100;
-=======
-            const currentVal = m.manualOrder !== undefined ? m.manualOrder : idx * 100;
->>>>>>> 04d7162 (Implement Dutch Open 2026 theme, global dark mode toggle, and visual polish across all pages)
             updates.set(m.id, currentVal);
         });
 
@@ -550,56 +546,6 @@ const Matches = () => {
         if (match.court === 'Kort Prawy') courtLabel = t('live.courtCyan');
 
         return (
-<<<<<<< HEAD
-            <div key={match.id} className="match-list-row" style={gridStyle}>
-                {showControls && (
-                    <div className="reorder-controls">
-                        <button
-                            className="reorder-btn up"
-                            onClick={() => handleMoveMatch(match.id, 'up')}
-                            title="Move Up"
-                        >
-                            <span className="arrow-icon">▲</span>
-                        </button>
-                        <button
-                            className="reorder-btn down"
-                            onClick={() => handleMoveMatch(match.id, 'down')}
-                            title="Move Down"
-                        >
-                            <span className="arrow-icon">▼</span>
-                        </button>
-                    </div>
-                )}
-                <div className="row-id" style={{ color: rowBorderColor }}>#{match.id.split('-m')[1]}</div>
-                <div className="row-bracket">
-                    <span className={`bracket-badge ${bracketClass}`}>{bracketLabel}</span>
-                    <span style={{ opacity: 0.5 }}>R{match.round}</span>
-                    {(() => {
-                        let courtBadge = null;
-                        if (match.court) {
-                            const cUpper = match.court.toUpperCase();
-                            const isPink = cUpper.includes('RÓŻOWY') || cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('PINK');
-                            const isCyan = cUpper.includes('TURKUSOWY') || cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('CYAN');
-                            const courtName = isPink ? 'LEFT' : (isCyan ? 'RIGHT' : 'CRT');
-                            // ... style ...
-                            const badgeStyle = {
-                                fontSize: '0.65rem',
-                                fontWeight: '800',
-                                padding: '1px 5px',
-                                borderRadius: '4px',
-                                marginLeft: '6px',
-                                backgroundColor: isPink ? 'rgba(236, 72, 153, 0.15)' : (isCyan ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255,255,255,0.1)'),
-                                color: isPink ? 'var(--accent-pink)' : (isCyan ? 'var(--accent-cyan)' : 'var(--text-secondary)'),
-                                border: `1px solid ${isPink ? 'var(--accent-pink)' : (isCyan ? 'var(--accent-cyan)' : 'var(--border-color)')}`,
-                                whiteSpace: 'nowrap',
-                                display: 'inline-block',
-                                lineHeight: '1'
-                            };
-                            return <span style={badgeStyle} title={match.court}>{courtName}</span>;
-                        }
-                        return null;
-                    })()}
-=======
             <div key={match.id} className={rowClass}>
                 <div className="row-meta-badge">
                     <span className={`bracket-pill ${bracketClass}`}>{bracketLabel}</span>
@@ -608,7 +554,6 @@ const Matches = () => {
                     <span style={{ opacity: 0.5, margin: '0 4px' }}>•</span>
                     <span>#{matchIdShort}</span>
                     {match.court && <span className="court-label"> • {courtLabel}</span>}
->>>>>>> 04d7162 (Implement Dutch Open 2026 theme, global dark mode toggle, and visual polish across all pages)
                 </div>
 
                 {showControls ? (
