@@ -380,28 +380,64 @@ const Matches = () => {
             };
         }).filter(m => m.player1Id && m.player2Id && !m.player1.isBye && !m.player2.isBye);
 
-        const active = enriched.filter(m => m.status === 'live');
-        const pending = enriched.filter(m => m.status === 'pending').sort((a, b) => {
-            const oa = (a.manualOrder !== undefined && a.manualOrder !== null) ? a.manualOrder : Number.MAX_SAFE_INTEGER;
-            const ob = (b.manualOrder !== undefined && b.manualOrder !== null) ? b.manualOrder : Number.MAX_SAFE_INTEGER;
-            if (oa !== ob) return oa - ob;
-            return compareMatchIds(a.id, b.id);
-        });
+        // Separate finished from the rest
         const finished = enriched.filter(m => m.status === 'finished').sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
 
-        const pinkQueue = [];
-        const cyanQueue = [];
-        pending.forEach((m) => {
+        // Candidates for Live/Queue (Live + Pending)
+        const ongoing = enriched.filter(m => m.status !== 'finished');
+
+        const leftCandidates = [];
+        const rightCandidates = [];
+
+        ongoing.forEach(m => {
             const cUpper = (m.court || '').toUpperCase();
             const isLeft = cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('RÓŻOWY') || cUpper.includes('PINK');
             const isRight = cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('TURKUSOWY') || cUpper.includes('CYAN');
-            if (isLeft) pinkQueue.push(m);
-            else if (isRight) cyanQueue.push(m);
-            else if (pinkQueue.length <= cyanQueue.length) pinkQueue.push(m);
-            else cyanQueue.push(m);
+
+            // If no court assigned yet, we might want to skip or assign based on load balancing logic which is handled in useEffect.
+            // But here we just group them for display. 
+            // If strictly no court, we might treat it as right capacity or check the useEffect logic.
+            // For now, let's assume useEffect assigns courts. If not, auto-assign to Left if empty? 
+            // To be safe, if no court, put in left if left < right, else right.
+            if (isLeft) leftCandidates.push(m);
+            else if (isRight) rightCandidates.push(m);
+            else {
+                if (leftCandidates.length <= rightCandidates.length) leftCandidates.push(m);
+                else rightCandidates.push(m);
+            }
         });
 
-        return { active, pending, finished, pinkQueue, cyanQueue };
+        // SORT FUNCTION: Live > Manual Order > ID
+        const sortFn = (a, b) => {
+            const sA = (a.status === 'live' ? 0 : 1);
+            const sB = (b.status === 'live' ? 0 : 1);
+            if (sA !== sB) return sA - sB;
+
+            const oa = (a.manualOrder !== undefined && a.manualOrder !== null) ? a.manualOrder : Number.MAX_SAFE_INTEGER;
+            const ob = (b.manualOrder !== undefined && b.manualOrder !== null) ? b.manualOrder : Number.MAX_SAFE_INTEGER;
+            if (oa !== ob) return oa - ob;
+
+            return compareMatchIds(a.id, b.id);
+        };
+
+        leftCandidates.sort(sortFn);
+        rightCandidates.sort(sortFn);
+
+        // Extract Active (Top 1)
+        const leftActive = leftCandidates.length > 0 ? leftCandidates[0] : null;
+        const rightActive = rightCandidates.length > 0 ? rightCandidates[0] : null;
+
+        const active = [leftActive, rightActive].filter(Boolean);
+
+        // Remaining are Queue
+        const pinkQueue = leftCandidates.slice(top => top === leftActive ? 1 : leftCandidates.indexOf(top) + 1);
+        // Logic fix: slice from 1 if exists.
+        const pinkRest = leftActive ? leftCandidates.filter(m => m.id !== leftActive.id) : leftCandidates;
+        const cyanRest = rightActive ? rightCandidates.filter(m => m.id !== rightActive.id) : rightCandidates;
+
+        const pending = [...pinkRest, ...cyanRest];
+
+        return { active, pending, finished, pinkQueue: pinkRest, cyanQueue: cyanRest };
     }, [matches, players]);
 
 
