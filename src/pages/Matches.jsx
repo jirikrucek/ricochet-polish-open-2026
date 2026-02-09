@@ -8,7 +8,6 @@ import { Edit2, Trophy, Clock, Activity, CheckCircle, Save, X, Trash2, GripVerti
 import './Matches.css';
 import { usePlayers } from '../hooks/usePlayers';
 import { useAuth } from '../hooks/useAuth.tsx';
-import { usePlayerFocus } from '../contexts/PlayerFocusContext';
 import { getCountryCode } from '../constants/countries';
 
 // --- DND KIT IMPORTS ---
@@ -110,11 +109,14 @@ const SortableMatchRow = ({ match, index, queueType, isAuthenticated, onEdit }) 
                 {match.court && <span className="court-label"> • {courtLabel}</span>}
             </div>
 
-            {isAuthenticated && (
-                <div className="row-controls" {...attributes} {...listeners} style={{ cursor: 'grab', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <GripVertical size={20} style={{ opacity: 0.6 }} />
-                </div>
-            )}
+            {/* Column 1: Controls (Grip) */}
+            <div className="row-controls">
+                {isAuthenticated && (
+                    <div {...attributes} {...listeners} style={{ cursor: 'grab', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                        <GripVertical size={20} style={{ opacity: 0.6 }} />
+                    </div>
+                )}
+            </div>
 
             <div className="player p1">
                 <span className="name">{formatName(match.player1)}</span>
@@ -122,8 +124,8 @@ const SortableMatchRow = ({ match, index, queueType, isAuthenticated, onEdit }) 
             </div>
 
             <div className="match-center-info">
-                {match.winnerId ? (
-                    <span className="final-score">{match.score1} : {match.score2}</span>
+                {match.winnerId || (match.score1 > 0 || match.score2 > 0) ? (
+                    <span className="final-score">{match.score1 || 0} : {match.score2 || 0}</span>
                 ) : (
                     <div className="score-divider">
                         <span className="vs">{t('common.vs')}</span>
@@ -366,23 +368,10 @@ const Matches = () => {
         }
     }, [matches]);
 
-    // --- PLAYER FOCUS SETUP ---
-    const { focusedPlayerId, disableFocus } = usePlayerFocus(); // Import this hook
-
-    // Filter Logic
     const processedMatches = useMemo(() => {
         if (!matches || matches.length === 0) return { active: [], pending: [], finished: [], pinkQueue: [], cyanQueue: [] };
 
-        let candidateMatches = matches;
-
-        // Apply Focus Filter FIRST if active
-        if (focusedPlayerId) {
-            candidateMatches = matches.filter(m =>
-                m.player1Id === focusedPlayerId || m.player2Id === focusedPlayerId
-            );
-        }
-
-        const enriched = candidateMatches.map(m => {
+        const enriched = matches.map(m => {
             const p1 = players.find(p => p.id === m.player1Id);
             const p2 = players.find(p => p.id === m.player2Id);
             return {
@@ -397,63 +386,28 @@ const Matches = () => {
         // Separate finished from the rest
         const finished = enriched.filter(m => m.status === 'finished').sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
 
-        // Candidates for Live/Queue (Live + Pending)
-        const ongoing = enriched.filter(m => m.status !== 'finished');
-
-        const leftCandidates = [];
-        const rightCandidates = [];
-
-        ongoing.forEach(m => {
-            const cUpper = (m.court || '').toUpperCase();
-            const isLeft = cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('RÓŻOWY') || cUpper.includes('PINK');
-            const isRight = cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('TURKUSOWY') || cUpper.includes('CYAN');
-
-            // If no court assigned yet, we might want to skip or assign based on load balancing logic which is handled in useEffect.
-            // But here we just group them for display. 
-            // If strictly no court, we might treat it as right capacity or check the useEffect logic.
-            // For now, let's assume useEffect assigns courts. If not, auto-assign to Left if empty? 
-            // To be safe, if no court, put in left if left < right, else right.
-            if (isLeft) leftCandidates.push(m);
-            else if (isRight) rightCandidates.push(m);
-            else {
-                if (leftCandidates.length <= rightCandidates.length) leftCandidates.push(m);
-                else rightCandidates.push(m);
-            }
-        });
-
-        // SORT FUNCTION: Live > Manual Order > ID
-        const sortFn = (a, b) => {
-            const sA = (a.status === 'live' ? 0 : 1);
-            const sB = (b.status === 'live' ? 0 : 1);
-            if (sA !== sB) return sA - sB;
-
+        const active = enriched.filter(m => m.status === 'live');
+        const pending = enriched.filter(m => m.status === 'pending').sort((a, b) => {
             const oa = (a.manualOrder !== undefined && a.manualOrder !== null) ? a.manualOrder : Number.MAX_SAFE_INTEGER;
             const ob = (b.manualOrder !== undefined && b.manualOrder !== null) ? b.manualOrder : Number.MAX_SAFE_INTEGER;
             if (oa !== ob) return oa - ob;
-
             return compareMatchIds(a.id, b.id);
-        };
+        });
 
-        leftCandidates.sort(sortFn);
-        rightCandidates.sort(sortFn);
+        const pinkQueue = [];
+        const cyanQueue = [];
+        pending.forEach((m) => {
+            const cUpper = (m.court || '').toUpperCase();
+            const isLeft = cUpper.includes('LEWY') || cUpper.includes('LEFT') || cUpper.includes('RÓŻOWY') || cUpper.includes('PINK');
+            const isRight = cUpper.includes('PRAWY') || cUpper.includes('RIGHT') || cUpper.includes('TURKUSOWY') || cUpper.includes('CYAN');
+            if (isLeft) pinkQueue.push(m);
+            else if (isRight) cyanQueue.push(m);
+            else if (pinkQueue.length <= cyanQueue.length) pinkQueue.push(m);
+            else cyanQueue.push(m);
+        });
 
-        // Extract Active (Top 1)
-        const leftActive = leftCandidates.length > 0 ? leftCandidates[0] : null;
-        const rightActive = rightCandidates.length > 0 ? rightCandidates[0] : null;
-
-        const active = [leftActive, rightActive].filter(Boolean);
-
-        // Remaining are Queue
-        const pinkQueue = leftCandidates.slice(top => top === leftActive ? 1 : leftCandidates.indexOf(top) + 1);
-        // Logic fix: slice from 1 if exists.
-        const pinkRest = leftActive ? leftCandidates.filter(m => m.id !== leftActive.id) : leftCandidates;
-        const cyanRest = rightActive ? rightCandidates.filter(m => m.id !== rightActive.id) : rightCandidates;
-
-        const pending = [...pinkRest, ...cyanRest];
-
-
-        return { active, pending, finished, pinkQueue: pinkRest, cyanQueue: cyanRest };
-    }, [matches, players, focusedPlayerId]);
+        return { active, pending, finished, pinkQueue, cyanQueue };
+    }, [matches, players]);
 
 
     // -- DND LOGIC --
@@ -729,35 +683,8 @@ const Matches = () => {
         );
     }
 
-    const focusedPlayer = focusedPlayerId ? players.find(p => p.id === focusedPlayerId) : null;
-
     return (
         <div className="matches-container animate-fade-in">
-            {focusedPlayer && (
-                <div style={{
-                    background: 'rgba(251, 191, 36, 0.2)',
-                    border: '1px solid #fbbf24',
-                    color: '#fbbf24',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    marginBottom: '1rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontWeight: 600
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {/* We can reuse the Eye icon here or just text */}
-                        <span>{t('profile.focusModeActive', { name: formatName(focusedPlayer) }) || `Focus Mode: ${formatName(focusedPlayer)}`}</span>
-                    </div>
-                    <button
-                        onClick={disableFocus}
-                        style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                    >
-                        <X size={20} /> <span style={{ marginLeft: '4px', fontSize: '0.8rem' }}>EXIT</span>
-                    </button>
-                </div>
-            )}
             <div className="matches-header">
                 <h1 className="matches-title text-gradient">{t('matches.title')}</h1>
                 <div className="matches-filters">

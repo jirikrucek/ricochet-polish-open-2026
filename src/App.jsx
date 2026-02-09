@@ -30,37 +30,34 @@ const ProtectedRoute = () => {
 
 import { MatchesProvider } from './contexts/MatchesContext';
 import { TournamentProvider } from './contexts/TournamentContext';
-import { PlayerFocusProvider } from './contexts/PlayerFocusContext';
 
 function App() {
   return (
     <TournamentProvider>
       <MatchesProvider>
-        <PlayerFocusProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/live" replace />} />
-            <Route path="/tournaments" element={<TournamentSelect />} />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Navigate to="/live" replace />} />
+          <Route path="/tournaments" element={<TournamentSelect />} />
 
-            <Route element={<Layout />}>
-              {/* Public View Routes (Read-Only for Guests, Edit for Admin) */}
-              <Route path="live" element={<Live />} />
-              <Route path="matches" element={<Matches />} />
-              <Route path="brackets" element={<Brackets />} />
-              <Route path="standings" element={<Standings />} />
-              <Route path="players" element={<Players />} />
+          <Route element={<Layout />}>
+            {/* Public View Routes (Read-Only for Guests, Edit for Admin) */}
+            <Route path="live" element={<Live />} />
+            <Route path="matches" element={<Matches />} />
+            <Route path="brackets" element={<Brackets />} />
+            <Route path="standings" element={<Standings />} />
+            <Route path="players" element={<Players />} />
 
-              {/* Protected Admin Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="organizer" element={<Organizer />} />
-                <Route path="settings" element={<Settings />} />
-              </Route>
+            {/* Protected Admin Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="organizer" element={<Organizer />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
+          </Route>
 
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/live" replace />} />
-          </Routes>
-        </PlayerFocusProvider>
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/live" replace />} />
+        </Routes>
       </MatchesProvider>
     </TournamentProvider>
   );

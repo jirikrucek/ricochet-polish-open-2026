@@ -270,7 +270,8 @@
 /* Match Row */
 .match-list-row {
     display: grid;
-    grid-template-columns: 40px 1fr 100px 1fr 40px;
+    grid-template-columns: 1fr 70px 1fr;
+    /* 3 columns for guests */
     gap: 0.5rem;
     align-items: center;
     background: var(--bg-secondary);
@@ -281,6 +282,17 @@
     transition: all 0.2s ease;
     overflow: visible;
     min-height: 80px;
+}
+
+.match-list-row.has-controls {
+    grid-template-columns: 30px 1fr 70px 1fr 30px;
+    /* 5 columns for organizers */
+}
+
+/* Hide side columns if not organizers in JSX */
+.match-list-row:not(.has-controls) .row-controls,
+.match-list-row:not(.has-controls) .row-action {
+    display: none;
 }
 
 /* Court Colors */
@@ -517,9 +529,13 @@
     }
 
     .match-list-row {
-        grid-template-columns: 24px 1fr 60px 1fr 24px;
+        grid-template-columns: 1fr 60px 1fr;
         padding: 1.25rem 0.5rem 0.5rem 0.5rem;
         gap: 0.25rem;
+    }
+
+    .match-list-row.has-controls {
+        grid-template-columns: 24px 1fr 60px 1fr 24px;
     }
 
     .player .name {
