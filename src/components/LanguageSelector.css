@@ -3,33 +3,31 @@
     display: inline-block;
 }
 
+/* Base button for globe icon */
 .lang-toggle-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem;
-    border-radius: 8px;
     color: white !important;
-    transition: background-color 0.2s, opacity 0.2s;
-}
-
-.lang-toggle-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    transition: all 0.2s;
+    background: transparent;
+    border: none;
+    cursor: pointer;
 }
 
 .lang-dropdown {
     position: absolute;
-    top: calc(100% + 8px);
-    /* DEFAULT DESKTOP: Right aligned with the icon */
-    right: 0;
-    width: 180px;
+    top: calc(100% + 12px);
+    /* Space below header */
+    left: 0;
+    width: 170px;
     background-color: white !important;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    z-index: 9999;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
     overflow: hidden;
-    padding: 4px;
+    padding: 6px;
     display: flex;
     flex-direction: column;
     animation: fadeInScale 0.2s ease-out;
@@ -37,22 +35,25 @@
 
 [data-theme='dark'] .lang-dropdown {
     background-color: #1f2937 !important;
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .lang-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    padding: 12px 14px !important;
+    border-radius: 8px !important;
     background: transparent !important;
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.2s;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: left !important;
+    transition: all 0.2s !important;
     color: #111827 !important;
+    white-space: nowrap !important;
+    height: auto !important;
+    min-width: 0 !important;
 }
 
 [data-theme='dark'] .lang-option {
@@ -64,13 +65,13 @@
 }
 
 [data-theme='dark'] .lang-option:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .lang-option.active {
-    background-color: rgba(220, 38, 38, 0.08) !important;
+    background-color: rgba(220, 38, 38, 0.1) !important;
     color: #dc2626 !important;
-    font-weight: 600;
+    font-weight: 700 !important;
 }
 
 [data-theme='dark'] .lang-option.active {
@@ -78,12 +79,16 @@
     color: #f87171 !important;
 }
 
+/* Ensure label spans the width and is visible */
 .lang-label {
     flex: 1;
     font-size: 0.95rem;
     pointer-events: none;
     display: block !important;
     color: inherit !important;
+    opacity: 1 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
 }
 
 .lang-check {
@@ -108,17 +113,18 @@
     }
 }
 
-/* MOBILE FIX */
+/* MOBILE FIXES */
 @media (max-width: 768px) {
     .lang-dropdown {
-        /* On mobile, we align to the LEFT side of the icon, 
-           meaning the dropdown extends to the RIGHT into the empty space. */
-        right: auto;
-        left: 0;
+        /* On mobile, icons are often centered or near edges. 
+           If it's at the start of header-actions, left: 0 is correct. */
+        left: -10px;
+        /* Slight nudge left to ensure it doesn't hug screen edge too tight */
         width: 160px;
+        top: calc(100% + 15px);
     }
 
-    .lang-label {
-        font-size: 0.93rem;
+    .lang-option {
+        padding: 10px 12px !important;
     }
 }

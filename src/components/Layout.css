@@ -309,19 +309,30 @@
         gap: 0.5rem;
     }
 
-    .header-actions span {
+    .header-actions>span {
         display: none;
     }
 
-    .header-actions button,
+    .header-actions>button,
+    .header-actions>a,
     .header-actions .lang-toggle-btn {
         padding: 0.35rem !important;
-        width: 34px;
-        height: 34px;
-        min-width: 34px;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
         display: flex;
         justify-content: center;
         align-items: center;
+        border-radius: 50%;
+    }
+
+    /* Prevent header styles from leaking into dropdown buttons */
+    .header-actions .lang-dropdown button {
+        width: auto !important;
+        height: auto !important;
+        min-width: 0 !important;
+        border-radius: 8px !important;
+        justify-content: flex-start !important;
     }
 
     .bottom-nav {
