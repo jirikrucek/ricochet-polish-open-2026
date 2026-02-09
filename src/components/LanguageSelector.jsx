@@ -46,16 +46,19 @@ const LanguageSelector = () => {
 
             {isOpen && (
                 <div className="lang-dropdown">
-                    {LANGUAGES.map((lang) => (
-                        <button
-                            key={lang.code}
-                            className={`lang-option ${i18n.language === lang.code ? 'active' : ''}`}
-                            onClick={() => changeLanguage(lang.code)}
-                        >
-                            <span className="lang-label">{lang.label}</span>
-                            {i18n.language === lang.code && <Check size={16} className="lang-check" />}
-                        </button>
-                    ))}
+                    {LANGUAGES.map((lang) => {
+                        const isActive = i18n.language.startsWith(lang.code);
+                        return (
+                            <button
+                                key={lang.code}
+                                className={`lang-option ${isActive ? 'active' : ''}`}
+                                onClick={() => changeLanguage(lang.code)}
+                            >
+                                <span className="lang-label">{lang.label || lang.code.toUpperCase()}</span>
+                                {isActive && <Check size={16} className="lang-check" />}
+                            </button>
+                        );
+                    })}
                 </div>
             )}
         </div>
