@@ -367,27 +367,14 @@
 }
 
 .player .name {
-    font-size: 1.1rem;
-    /* Match Live Page */
-    font-weight: 800;
+    font-size: 0.9rem;
+    font-weight: 700;
     color: var(--text-primary);
     text-transform: uppercase;
-    line-height: 1.1;
-    /* Tighter line height helps clamp */
-    white-space: normal;
-    word-wrap: break-word;
-
-    /* Force 2 lines max with ellipsis for perfect alignment */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    line-height: 1;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: 2.2em;
-    /* Ensure single lines take up space of 2 lines */
-    display: flex;
-    /* Flex centers single line vertically? No, conflict with -webkit-box. -webkit-box is display mode. */
-    /* So just use min-height */
 }
 
 .player-flag {
