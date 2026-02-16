@@ -51,7 +51,191 @@ npm run dev      # Start development server (Vite)
 npm run build    # Production build
 npm run lint     # Check code quality with ESLint
 npm run preview  # Preview production build
+npm run test     # Run tests with Vitest
+npm run test:ui  # Run tests with UI interface
 ```
+
+### Testing with Vitest
+
+**Test Framework**: Vitest with jsdom environment for React component testing
+
+**Available Testing Libraries**:
+- `vitest` - Test runner and assertion library
+- `@testing-library/react` - React component testing utilities
+- `@testing-library/user-event` - User interaction simulation
+- `@testing-library/jest-dom` - Custom matchers for DOM assertions
+
+#### Test File Structure
+
+Place test files adjacent to the code they test with `.test.js` or `.test.jsx` extension:
+
+```
+src/
+  utils/
+    bracketLogic.js
+    bracketLogic.test.js
+  hooks/
+    usePlayers.js
+    usePlayers.test.jsx
+  components/
+    PlayerProfileModal.jsx
+    PlayerProfileModal.test.jsx
+```
+
+#### Unit Testing Patterns
+
+**Testing Pure Functions** (utils):
+
+```javascript
+import { describe, it, expect } from 'vitest';
+import { getTargetDropId } from './bracketLogic';
+
+describe('bracketLogic', () => {
+  describe('getTargetDropId', () => {
+    it('should return correct drop target for WB R1 loss', () => {
+      const result = getTargetDropId('wb', 1, 1);
+      expect(result).toBe('lb-r1-m1');
+    });
+  });
+});
+```
+
+**Testing React Hooks**:
+
+```javascript
+import { describe, it, expect } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { usePlayers } from './usePlayers';
+
+describe('usePlayers', () => {
+  it('should fetch players from localStorage when Supabase not configured', async () => {
+    const { result } = renderHook(() => usePlayers('tournament-123'));
+    
+    await waitFor(() => {
+      expect(result.current.players).toHaveLength(32);
+    });
+  });
+});
+```
+
+#### Integration Testing Patterns
+
+**Testing Components with Context**:
+
+```javascript
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { TournamentContext } from '../contexts/TournamentContext';
+import { PlayerProfileModal } from './PlayerProfileModal';
+
+describe('PlayerProfileModal', () => {
+  const mockContextValue = {
+    currentTournament: { id: '123', name: 'Test Tournament' },
+    updatePlayer: vi.fn()
+  };
+
+  it('should render player information', () => {
+    render(
+      <TournamentContext.Provider value={mockContextValue}>
+        <PlayerProfileModal playerId="player-1" isOpen={true} />
+      </TournamentContext.Provider>
+    );
+    
+    expect(screen.getByText(/player information/i)).toBeInTheDocument();
+  });
+});
+```
+
+**Testing with i18n**:
+
+```javascript
+import { render } from '@testing-library/react';
+import { I18nextProvider } from 'react-i18next';
+import i18n from '../i18n/config';
+
+const renderWithI18n = (component) => {
+  return render(
+    <I18nextProvider i18n={i18n}>
+      {component}
+    </I18nextProvider>
+  );
+};
+
+// Use in tests
+it('should display translated text', () => {
+  renderWithI18n(<MyComponent />);
+  // assertions...
+});
+```
+
+#### Mocking Patterns
+
+**Mocking Supabase**:
+
+```javascript
+import { vi } from 'vitest';
+
+// Mock the entire supabase module
+vi.mock('../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      insert: vi.fn(() => Promise.resolve({ data: [], error: null }))
+    }))
+  },
+  isSupabaseConfigured: false
+}));
+```
+
+**Mocking localStorage**:
+
+```javascript
+import { beforeEach, vi } from 'vitest';
+
+beforeEach(() => {
+  const mockStorage = {};
+  global.localStorage = {
+    getItem: vi.fn((key) => mockStorage[key] || null),
+    setItem: vi.fn((key, value) => { mockStorage[key] = value; }),
+    removeItem: vi.fn((key) => { delete mockStorage[key]; }),
+    clear: vi.fn(() => { Object.keys(mockStorage).forEach(key => delete mockStorage[key]); })
+  };
+});
+```
+
+#### Testing Best Practices
+
+1. **Test file naming**: Use `.test.js` or `.test.jsx` extension
+2. **Organize with describe blocks**: Group related tests logically
+3. **Test dual-mode storage**: Always test both Supabase and localStorage paths
+4. **Mock external dependencies**: Mock Supabase, localStorage, and APIs
+5. **Use Testing Library queries**: Prefer `getByRole`, `getByLabelText` over `getByTestId`
+6. **Test user interactions**: Use `@testing-library/user-event` for realistic interactions
+7. **Clean up**: Use `beforeEach`/`afterEach` for test isolation
+8. **Async operations**: Use `waitFor` and `findBy*` queries for async updates
+
+#### What to Test
+
+**Priority 1 - Critical Business Logic**:
+- Bracket progression logic ([bracketLogic.js](../src/utils/bracketLogic.js))
+- Match state transitions ([matchUtils.js](../src/utils/matchUtils.js))
+- Tournament CRUD operations (TournamentContext)
+
+**Priority 2 - Data Hooks**:
+- Custom hooks with dual-mode storage (usePlayers, useMatches)
+- Data fetching and error handling
+- Real-time subscription logic
+
+**Priority 3 - UI Components**:
+- Complex interactive components (BracketCanvas, PlayerProfileModal)
+- Form validation and submission
+- Conditional rendering based on state
+
+**Lower Priority**:
+- Simple presentational components
+- Styling-only changes
+- Third-party library wrappers
 
 ## Project Conventions
 
