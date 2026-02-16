@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../i18n/config';
 import BracketCanvas from './BracketCanvas';
-import { createMockPlayers, createMockMatch } from '../test-utils';
+import { createMockPlayers } from '../test-utils';
 import { getBracketBlueprint, rebuildBracketState } from '../utils/bracketLogic';
 
 // ─── Mock CSS import ────────────────────────────────────────────────────────

@@ -92,7 +92,7 @@ const Login = () => {
 
                     {debugInfo && (
                         <div style={{ marginTop: '1rem', padding: '1rem', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
-                            <p>Entered username: "{debugInfo.enteredUsername}"</p>
+                            <p>Entered username: &quot;{debugInfo.enteredUsername}&quot;</p>
                             <p>Entered password length: {debugInfo.enteredPassLength}</p>
                             <p>Char codes: [{debugInfo.passCharCodes}]</p>
                             <p>login() result: {debugInfo.result.toString()}</p>

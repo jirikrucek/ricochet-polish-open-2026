@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { generateDoubleEliminationBracket, updateBracketMatch } from '../utils/bracketLogic';
-import { TransformWrapper, TransformComponent, useTransformContext } from 'react-zoom-pan-pinch';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { ZoomIn, ZoomOut, RotateCcw, Save, RefreshCw, X } from 'lucide-react';
 import './Brackets.css';
 import { useAuth } from '../hooks/useAuth.tsx';

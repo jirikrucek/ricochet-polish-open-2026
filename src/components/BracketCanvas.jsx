@@ -1,9 +1,8 @@
-import React, { useMemo, useRef, useLayoutEffect, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '../pages/Brackets.css';
 import RacketBadge, { RacketIcon } from './RacketBadge';
-import { getRacketPathConfig, getMatchColor } from '../utils/racketPathUtils';
 import { getBracketBlueprint } from '../utils/bracketLogic';
 
 const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visibleSections = ['wb', 'mid', 'lb'] }) => {
@@ -36,7 +35,6 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
 
     // --- 4. Interactive Highlight (Path to Final) ---
     const [hoveredMatchId, setHoveredMatchId] = useState(null);
-    const [paths, setPaths] = useState([]);
 
     const highlightedIds = useMemo(() => {
         if (!hoveredMatchId) return new Set();
@@ -114,7 +112,6 @@ const BracketCanvas = ({ matches, players, onMatchClick, readonly = false, visib
         const isClickable = !readonly && onMatchClick && !match.player1?.isBye && !match.player2?.isBye;
         const showScore = match.status === 'finished' || (match.status === 'live' && (match.score1 > 0 || match.score2 > 0));
 
-        const displayId = customHeader || getMatchNumber(match.id);
         const isLive = match.status === 'live';
 
         const isHighlighted = highlightedIds.has(match.id);

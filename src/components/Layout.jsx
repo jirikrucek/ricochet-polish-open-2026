@@ -53,8 +53,6 @@ const Layout = () => {
         navigate('/login');
     };
 
-    const currentYear = new Date().getFullYear();
-
     // Filter Navigation based on Auth
     const filteredNavItems = NAV_ITEMS.filter(item => {
         // Publicly visible pages (Content)
@@ -136,7 +134,7 @@ const Layout = () => {
                 !isLiveView && (
                     <aside className="sidebar">
                         <nav className="nav-list">
-                            {filteredNavItems.map((item, index) => (
+                            {filteredNavItems.map((item) => (
                                 <NavLink
                                     key={item.path}
                                     to={item.path}

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { createMockPlayers, createMockMatch } from '../test-utils';
+import { createMockPlayers } from '../test-utils';
 
 // ─── Mock Dependencies ──────────────────────────────────────────────────────
 

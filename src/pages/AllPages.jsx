@@ -20,10 +20,6 @@ export const Organizer = () => <PageContainer titleKey="navigation.organizer" />
 
 export { default as Standings } from './Standings';
 
-import { useState, useEffect } from 'react';
-import { usePlayers } from '../hooks/usePlayers';
-import { useMatches } from '../hooks/useMatches';
-
 export const Settings = () => {
     const { t } = useTranslation();
     return (

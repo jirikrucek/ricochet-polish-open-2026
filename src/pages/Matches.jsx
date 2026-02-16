@@ -232,6 +232,7 @@ const MatchEditModal = ({ match, onClose, onSave, onClear }) => {
             onSaveRef.current(match.id, getSavePayload(), { autoSave: true });
         }, 500);
         return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [score1, score2, status, court]);
 
     const handleSave = (e) => {

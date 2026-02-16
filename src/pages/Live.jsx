@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Maximize, Clock, Activity, X, Trophy } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -7,7 +7,6 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { useTournamentMatches } from '../hooks/useTournamentMatches';
 import { usePlayers } from '../hooks/usePlayers';
 import { useAuth } from '../hooks/useAuth.tsx';
-import { useTournament } from '../contexts/TournamentContext';
 import { getBestOf, compareMatchIds, getMatchStatus } from '../utils/matchUtils';
 import { updateBracketMatch } from '../utils/bracketLogic';
 import { getCountryCode } from '../constants/countries';
@@ -50,10 +49,8 @@ const Live = () => {
     const { isAuthenticated } = useAuth();
     const { matches, saveMatches } = useTournamentMatches(); // Replaces useMatches for logic hydration
     const { players, updatePlayer } = usePlayers();
-    const { activeTournamentId } = useTournament();
 
     const location = useLocation();
-    const navigate = useNavigate();
 
     // TV Mode
     const isTvMode = new URLSearchParams(location.search).get('mode') === 'tv';
@@ -246,8 +243,6 @@ const Live = () => {
         if (!match) return renderEmptyLive(courtColor);
 
         const bestOf = getBestOf(match.bracket);
-        const isStillPlaying = !match.winnerId;
-        const currentSet = (match.microPoints || []).slice(-1)[0] || { a: 0, b: 0 };
         const p1Name = splitNameForDisplay(formatName(match.player1));
         const p2Name = splitNameForDisplay(formatName(match.player2));
 
@@ -340,7 +335,6 @@ const Live = () => {
     const renderRecentList = (queue) => {
         if (!queue || queue.length === 0) return <div className="upcoming-item empty">{t('live.noResults')}</div>;
         return queue.map(m => {
-            const bestOf = getBestOf(m.bracket);
             const p1 = splitNameForDisplay(formatName(m.player1));
             const p2 = splitNameForDisplay(formatName(m.player2));
 

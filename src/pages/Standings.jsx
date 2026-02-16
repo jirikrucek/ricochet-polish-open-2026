@@ -60,7 +60,7 @@ const Standings = () => {
 
         return filledSlots;
 
-    }, [matches, players]);
+    }, [matches]);
 
     const getPlayer = (id) => players.find(p => p.id === id);
 

@@ -28,7 +28,7 @@ export const MatchesProvider = ({ children }) => {
     if (typeof mp === "string") {
       try {
         mp = JSON.parse(mp);
-      } catch (e) {
+      } catch {
         mp = [];
       }
     }
@@ -146,7 +146,7 @@ export const MatchesProvider = ({ children }) => {
   // --- ACTIONS ---
 
   const saveMatches = useCallback(
-    async (newMatches, specificMatchId = null) => {
+    async (newMatches, _specificMatchId = null) => {
       if (!activeTournamentId) {
         console.error("No active tournament ID, cannot save!");
         return;
@@ -213,6 +213,7 @@ export const MatchesProvider = ({ children }) => {
         isSavingRef.current = false;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isAuthenticated, activeTournamentId, lsKey],
   );
 

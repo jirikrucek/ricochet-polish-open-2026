@@ -111,7 +111,7 @@ export const usePlayers = () => {
     }
   };
 
-  const importPlayers = async (namesList) => {
+  const importPlayers = async (_namesList) => {
     // Basic impl for now
     return 0;
   };
