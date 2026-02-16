@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTournament } from '../contexts/TournamentContext';
 import { Plus, Trash2, Check, ExternalLink, Calendar, Edit2, MapPin, X, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getLocaleFromLanguage } from '../utils/localeUtils';
 
 const Organizer = () => {
     const { t, i18n } = useTranslation();
@@ -31,7 +32,7 @@ const Organizer = () => {
 
     const formatDate = (isoString) => {
         if (!isoString) return '';
-        const dateLocale = i18n.language || 'en';
+        const dateLocale = getLocaleFromLanguage(i18n.language);
         return new Date(isoString).toLocaleDateString(dateLocale, {
             year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });

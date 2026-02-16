@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTournament } from '../contexts/TournamentContext';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, ArrowRight, Calendar, ArrowLeft } from 'lucide-react';
+import { getLocaleFromLanguage } from '../utils/localeUtils';
 
 const TournamentSelect = () => {
     const { t, i18n } = useTranslation();
@@ -15,7 +16,7 @@ const TournamentSelect = () => {
     };
 
     const formatDate = (isoString) => {
-        const dateLocale = i18n.language || 'en';
+        const dateLocale = getLocaleFromLanguage(i18n.language);
         return new Date(isoString).toLocaleDateString(dateLocale, {
             year: 'numeric', month: 'long', day: 'numeric'
         });
