@@ -1,5 +1,4 @@
 ---
-name: discover-standards
 description: Extract tribal knowledge from your codebase into concise, documented standards.
 ---
 

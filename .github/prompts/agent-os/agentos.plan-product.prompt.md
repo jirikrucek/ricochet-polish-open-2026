@@ -1,5 +1,4 @@
 ---
-name: plan-product
 description: Establish foundational product documentation through an interactive conversation. Creates mission, roadmap, and tech stack files in `agent-os/product/`.
 ---
 

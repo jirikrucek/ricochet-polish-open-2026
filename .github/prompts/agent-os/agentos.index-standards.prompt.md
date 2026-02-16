@@ -1,5 +1,4 @@
 ---
-name: index-standards
 description: Rebuild and maintain the standards index file (`index.yml`).
 ---
 

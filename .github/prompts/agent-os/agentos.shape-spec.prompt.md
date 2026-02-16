@@ -1,5 +1,4 @@
 ---
-name: shape-spec
 description: Gather context and structure planning for significant work. **Run this command while in plan mode.**
 ---
 
