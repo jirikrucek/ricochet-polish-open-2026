@@ -119,6 +119,21 @@ VITE_SUPABASE_ANON_KEY=your_key
 - `qrcode.react` - QR code generation for match sharing
 - `lucide-react` - Icon library
 
+### Context7 Documentation Retrieval
+
+When working with external libraries or need up-to-date documentation:
+
+- Use Context7 (via Upstash MCP server) to retrieve latest docs and code examples
+- Search available tools with pattern `mcp_upstash` to access documentation tools
+- Helpful for getting current API references, best practices, and usage examples
+- Use when library documentation is needed beyond what's in node_modules
+
+**When to use Context7:**
+- Implementing new features with unfamiliar libraries
+- Updating library usage to latest patterns
+- Resolving API compatibility issues
+- Finding code examples for specific use cases
+
 ## Security
 
 - Simple authentication via [useAuth.tsx](../src/hooks/useAuth.tsx) hook
