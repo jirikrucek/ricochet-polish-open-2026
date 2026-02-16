@@ -31,7 +31,28 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### Required Principles Compliance
+
+- [ ] **DDD**: Does the feature respect bounded contexts? (Tournament management, match tracking, player profiles)
+- [ ] **TDD**: Are test requirements identified? (Priority 1: business logic, Priority 2: hooks, Priority 3: components)
+- [ ] **SOLID**: Does the design follow single responsibility? Are dependencies properly inverted?
+- [ ] **Dual-Mode**: Does the feature work with BOTH Supabase and localStorage?
+- [ ] **i18n**: Will UI changes require updates to all 5 language files?
+- [ ] **Domain Integrity**: Does the feature affect bracket logic, match IDs, or drop patterns? If yes, requires extra validation.
+
+### Technology Stack Verification
+
+- [ ] Uses React 19.2 functional components (no new class components except ErrorBoundary)
+- [ ] Uses Context API for state (not Redux or other libraries)
+- [ ] Custom hooks for data operations (not direct database access)
+- [ ] File organization follows `pages/`, `components/`, `hooks/`, `utils/`, `contexts/` structure
+
+### Code Standards Gates
+
+- [ ] ESLint compliance confirmed
+- [ ] Import ordering: external libs → internal modules → styles
+- [ ] File extension: `.jsx` for components, `.js` for utilities
+- [ ] localStorage keys use `ricochet_*` prefix if applicable
 
 ## Project Structure
 
