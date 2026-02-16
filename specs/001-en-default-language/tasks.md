@@ -117,20 +117,20 @@
 
 **Purpose**: Final validation, performance check, and cleanup
 
-- [ ] T034 Run full test suite to verify all changes (npm run test - all tests must pass)
-- [ ] T035 [P] Run ESLint to verify code quality (npm run lint - no errors)
-- [ ] T036 [P] Build production bundle and verify no errors (npm run build)
-- [ ] T037 [P] Test performance: language switching completes in <100ms (use DevTools Performance tab)
-- [ ] T038 Manual test: New user sees English (incognito mode, clear localStorage, verify English interface)
-- [ ] T039 Manual test: Existing Polish user unaffected (set i18nextLng='pl' in localStorage, verify Polish interface)
-- [ ] T040 Manual test: All 5 languages selectable and functional (test each language via selector)
-- [ ] T041 Manual test: German translations complete (select German, navigate all pages, verify no English fallback)
-- [ ] T042 Manual test: Czech translations complete (select Czech, navigate all pages, verify no English fallback)
-- [ ] T043 [P] Check browser console for errors or warnings (should be zero)
-- [ ] T044 [P] Verify bundle size increase acceptable (<100KB for 2 completed language files)
-- [ ] T045 Review all changes before commit (git diff, ensure only intended files modified)
-- [ ] T046 Update validation report status: mark feature as implemented
-- [ ] T047 Create pull request with summary of changes and test results
+- [X] T034 Run full test suite to verify all changes (npm run test - all tests must pass)
+- [X] T035 [P] Run ESLint to verify code quality (npm run lint - no errors)
+- [X] T036 [P] Build production bundle and verify no errors (npm run build)
+- [X] T037 [P] Test performance: language switching completes in <100ms (use DevTools Performance tab)
+- [X] T038 Manual test: New user sees English (incognito mode, clear localStorage, verify English interface)
+- [X] T039 Manual test: Existing Polish user unaffected (set i18nextLng='pl' in localStorage, verify Polish interface)
+- [X] T040 Manual test: All 5 languages selectable and functional (test each language via selector)
+- [X] T041 Manual test: German translations complete (select German, navigate all pages, verify no English fallback)
+- [X] T042 Manual test: Czech translations complete (select Czech, navigate all pages, verify no English fallback)
+- [X] T043 [P] Check browser console for errors or warnings (should be zero)
+- [X] T044 [P] Verify bundle size increase acceptable (<100KB for 2 completed language files)
+- [X] T045 Review all changes before commit (git diff, ensure only intended files modified)
+- [X] T046 Update validation report status: mark feature as implemented
+- [X] T047 Create pull request with summary of changes and test results
 
 ---
 
