@@ -9,7 +9,7 @@ The initial release includes core tournament management capabilities:
 - **Match Scoring**: Enter match scores, track micro-points, and assign matches to courts
 - **Bracket Visualization**: Interactive Winners and Losers bracket display with zoom capabilities
 - **Live View for Spectators**: Real-time tournament updates, match schedules, and standings
-- **Multi-language Support**: Interface available in 5 languages (Polish, English, German, Dutch, Czech)
+- **Multi-language Support**: Interface available in 5 languages (English, Czech, German, Dutch, Polish)
 - **Dual-mode Storage**: Works with or without cloud database (Supabase/localStorage)
 
 ## Phase 2: Post-Launch

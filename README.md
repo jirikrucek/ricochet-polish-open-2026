@@ -45,11 +45,11 @@ The **Ricochet Polish Open 2026** app enables tournament organizers to manage co
 
 ### Internationalization
 - **i18next** - Supports 5 languages:
-  - 🇵🇱 Polish
-  - 🇬🇧 English  
+  - 🇬🇧 English (default)
+  - 🇨🇿 Czech
   - 🇩🇪 German
   - 🇳🇱 Dutch
-  - 🇨🇿 Czech
+  - 🇵🇱 Polish
 - Auto-detection of browser language
 
 ## 📁 Project Structure
