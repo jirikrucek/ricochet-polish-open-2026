@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTournament } from '../contexts/TournamentContext';
 import { Plus, Trash2, Check, ExternalLink, Calendar, Edit2, MapPin, X, Save } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const Organizer = () => {
     const { t } = useTranslation();
     const { tournaments, activeTournamentId, selectTournament, createTournament, deleteTournament, updateTournament } = useTournament();
     const [newByName, setNewByName] = useState('');
     const [newAddress, setNewAddress] = useState('');
-    const navigate = useNavigate();
 
     // Edit State
     const [editingTournament, setEditingTournament] = useState(null);

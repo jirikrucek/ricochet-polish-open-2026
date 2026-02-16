@@ -222,7 +222,7 @@ const PlayerFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
 const Players = () => {
     const { t } = useTranslation();
-    const { players, addPlayer, updatePlayer, deletePlayer, importPlayers, bulkUpsertPlayers } = usePlayers();
+    const { players, addPlayer, updatePlayer, deletePlayer, bulkUpsertPlayers } = usePlayers();
     const { matches } = useMatches();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);

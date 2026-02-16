@@ -97,7 +97,7 @@ export const TournamentProvider = ({ children }) => {
     } else if (tournaments.length > 0 && !activeTournamentId) {
       setActiveTournamentId(tournaments[0].id);
     }
-  }, [tournaments]);
+  }, [tournaments, activeTournamentId]);
 
   const selectTournament = (id) => {
     setActiveTournamentId(id);

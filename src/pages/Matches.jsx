@@ -152,7 +152,6 @@ const SortableMatchRow = ({ match, index, queueType, isAuthenticated, onEdit }) 
 // --- DRAG OVERLAY ITEM (Visual Clone) ---
 const DragOverlayItem = ({ match }) => {
     // Simplified version for the drag preview
-    const { t } = useTranslation();
     if (!match) return null;
     return (
         <div className={`match-list-row dragging-clone`} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--accent-primary)', opacity: 0.9 }}>
@@ -366,7 +365,7 @@ const Matches = () => {
             });
             saveMatches(updatedMatches);
         }
-    }, [matches]);
+    }, [matches, saveMatches]);
 
     const processedMatches = useMemo(() => {
         if (!matches || matches.length === 0) return { active: [], pending: [], finished: [], pinkQueue: [], cyanQueue: [] };

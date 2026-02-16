@@ -152,10 +152,6 @@ export const MatchesProvider = ({ children }) => {
         return;
       }
 
-      console.log(
-        `[MatchesContext] Saving ${newMatches.length} matches. Config: Supabase=${isSupabaseConfigured}, Auth=${isAuthenticated}, ID=${activeTournamentId}`,
-      );
-
       // 0. CAPTURE CURRENT STATE BEFORE ASYNC/UPDATES
       const previousMatches = [...matchesRef.current];
 
@@ -195,9 +191,6 @@ export const MatchesProvider = ({ children }) => {
               .upsert(changesToSave, { onConflict: "tournament_id,id" });
 
             if (error) throw error;
-            console.log(
-              `[MatchesContext] Saved ${changesToSave.length} matches to Supabase.`,
-            );
           }
         } catch (e) {
           console.error("Error saving matches:", e);
@@ -209,7 +202,6 @@ export const MatchesProvider = ({ children }) => {
         }
       } else {
         // LS
-        console.log(`[MatchesContext] Saving to LS: ${lsKey}`);
         localStorage.setItem(lsKey, JSON.stringify(newMatches));
 
         // Also update global state for backup

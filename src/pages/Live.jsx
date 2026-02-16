@@ -273,16 +273,18 @@ const Live = () => {
                         <div className="sets-label">{t('live.sets')}</div>
                         <div className="set-dots">
                             {(match.microPoints || []).map((s, idx) => (
-                                <div key={idx} style={{ fontSize: '0.7rem', opacity: 0.7, color: idx === (match.microPoints.length - 1) ? 'white' : '#aaa' }}>
+                                <div key={s.set || idx} style={{ fontSize: '0.7rem', opacity: 0.7, color: idx === (match.microPoints.length - 1) ? 'white' : '#aaa' }}>
                                     {s.a}-{s.b}
                                 </div>
                             ))}
                         </div>
-                        {match.bracket && (
-                            <div style={{ marginTop: '0.5rem', opacity: 0.5, fontSize: '0.7rem', textTransform: 'uppercase' }}>
-                                {match.bracket} R{match.round} | {t('live.bo', { n: bestOf })}
-                            </div>
-                        )}
+                        <div style={{ marginTop: '0.5rem', opacity: 0.5, fontSize: '0.7rem', textTransform: 'uppercase' }}>
+                            {match.bracket && (
+                                <>
+                                    {match.bracket} R{match.round} | {t('live.bo', { n: bestOf })}
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     {/* PLAYER 2 (Right) */}

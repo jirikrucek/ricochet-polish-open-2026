@@ -6,7 +6,7 @@ import {
     updateBracketMatch,
     clearBracketMatch,
 } from './bracketLogic';
-import { createMockPlayers, createBYEPlayer } from '../test-utils';
+import { createMockPlayers } from '../test-utils';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS

@@ -51,49 +51,34 @@ const Brackets = () => {
     const { activeTournamentId, updateTournament } = useTournament();
 
     const handleGenerate = async () => {
-        console.log("Handle Generate Clicked");
         if (!isAuthenticated) {
-            console.log("User not authenticated");
             return;
         }
-        console.log("Players count:", players.length);
 
         if (players.length < 2) {
             alert(t('matches.needPlayers') + ` (Count: ${players.length})`);
             return;
         }
 
-        // if (window.confirm(t('brackets.resetConfirm'))) {
-        console.log("Auto-confirmed reset. Generating...");
         try {
             // Clear old matches first to ensure clean ID set (especially after logic updates)
             if (resetMatches) {
-                console.log("Calling resetMatches...");
                 await resetMatches();
             }
 
-            console.log("Generating blueprint...");
             const newBracket = generateDoubleEliminationBracket(players);
-            console.log("New bracket generated:", newBracket.length, "matches");
 
             // Save matches to DB
             await saveMatches(newBracket);
-            console.log("Matches saved.");
 
             // Update tournament status so we know bracket exists
             if (activeTournamentId) {
                 await updateTournament(activeTournamentId, { status: 'in_progress' });
             }
-
-            // Force reload of page to ensure state sync if hot reload is flaky
-            // window.location.reload(); 
         } catch (err) {
             console.error("Error during generation:", err);
             alert("Error: " + err.message);
         }
-        // } else {
-        //     console.log("Reset cancelled");
-        // }
     };
 
     const handleMatchClick = (match) => {
