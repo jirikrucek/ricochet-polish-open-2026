@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Trophy, ArrowRight, Calendar, ArrowLeft } from 'lucide-react';
 
 const TournamentSelect = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { tournaments, selectTournament } = useTournament();
     const navigate = useNavigate();
 
@@ -15,7 +15,8 @@ const TournamentSelect = () => {
     };
 
     const formatDate = (isoString) => {
-        return new Date(isoString).toLocaleDateString('pl-PL', {
+        const dateLocale = i18n.language || 'en';
+        return new Date(isoString).toLocaleDateString(dateLocale, {
             year: 'numeric', month: 'long', day: 'numeric'
         });
     };

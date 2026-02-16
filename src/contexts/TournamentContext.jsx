@@ -37,10 +37,10 @@ export const TournamentProvider = ({ children }) => {
               // Seed default if empty array found (edge case)
               const defaultT = {
                 id: "default-rpo-2026",
-                name: "RICOCHET POLISH OPEN 2026",
+                name: "RICOCHET TOURNAMENT 2026",
                 date: new Date().toISOString(),
                 status: "setup",
-                address: "Warszawa",
+                address: "Tournament Venue",
               };
               setTournaments([defaultT]);
               localStorage.setItem(LOCAL_META_KEY, JSON.stringify([defaultT]));
@@ -55,10 +55,10 @@ export const TournamentProvider = ({ children }) => {
           // Seed default tournament for new users
           const defaultT = {
             id: "default-rpo-2026",
-            name: "RICOCHET POLISH OPEN 2026",
+            name: "RICOCHET TOURNAMENT 2026",
             date: new Date().toISOString(),
             status: "setup",
-            address: "Warszawa",
+            address: "Tournament Venue",
           };
           setTournaments([defaultT]);
           localStorage.setItem(LOCAL_META_KEY, JSON.stringify([defaultT]));

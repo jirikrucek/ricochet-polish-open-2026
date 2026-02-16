@@ -5,7 +5,7 @@ import { Plus, Trash2, Check, ExternalLink, Calendar, Edit2, MapPin, X, Save } f
 import { useNavigate } from 'react-router-dom';
 
 const Organizer = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { tournaments, activeTournamentId, selectTournament, createTournament, deleteTournament, updateTournament } = useTournament();
     const [newByName, setNewByName] = useState('');
     const [newAddress, setNewAddress] = useState('');
@@ -31,11 +31,8 @@ const Organizer = () => {
 
     const formatDate = (isoString) => {
         if (!isoString) return '';
-        // Use user locale if possible or 'pl-PL' / 'en-US' based on language
-        // For now, let's stick to 'pl-PL' or dynamic. 
-        // We can use i18n.language from useTranslation to format date?
-        // Let's just keep 'pl-PL' for now as it's hardcoded in original or use 'default'.
-        return new Date(isoString).toLocaleDateString('pl-PL', {
+        const dateLocale = i18n.language || 'en';
+        return new Date(isoString).toLocaleDateString(dateLocale, {
             year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
     };
