@@ -28,7 +28,7 @@ N/A - This is a frontend-only application with direct database integration
 
 - **i18next**: Multi-language support
 - **react-i18next**: React integration for translations
-- Supports 5 languages: Polish (default), English, German, Dutch, Czech
+- Supports 5 languages: English (default), Polish, German, Dutch, Czech
 - Automatic browser language detection
 
 ## Development Tools
