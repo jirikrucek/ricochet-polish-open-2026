@@ -30,6 +30,7 @@
         "searchPlaceholder": "Search...",
         "headers": {
             "fullName": "Full Name",
+            "photo": "Photo",
             "country": "Country",
             "elo": "ELO"
         },
@@ -42,6 +43,7 @@
             "editTitle": "Edit Player",
             "labels": {
                 "fullName": "Full Name *",
+                "photo": "Photo Link",
                 "country": "Country",
                 "elo": "ELO"
             },
