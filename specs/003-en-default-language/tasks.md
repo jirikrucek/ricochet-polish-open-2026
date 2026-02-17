@@ -15,11 +15,11 @@
 
 ## Task Summary
 
-- **Total Tasks**: 24
+- **Total Tasks**: 36
 - **Parallelizable**: 14 tasks marked [P]
 - **User Stories**: 4 (US1-P1, US2-P2, US3-P2, US4-P3)
 - **Estimated Duration**: 4-7 hours total
-- **Files Modified**: 4 files (config.js, de.json, cs.json, LanguageSelector.jsx)
+- **Files Modified**: Multiple application and spec files, including src/i18n/config.js, src/i18n/en.json, src/i18n/de.json, src/i18n/cs.json, src/components/LanguageSelector.jsx, and docs under specs/003-en-default-language/
 
 ---
 
