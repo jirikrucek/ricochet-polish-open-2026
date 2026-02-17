@@ -30,8 +30,9 @@
         "searchPlaceholder": "Suchen...",
         "headers": {
             "fullName": "Vollständiger Name",
+            "photo": "FOTO",
             "country": "Land",
-            "elo": "ELO"
+            "elo": "POINTS"
         },
         "empty": {
             "notFound": "Keine Spieler gefunden.",
@@ -42,8 +43,9 @@
             "editTitle": "Spieler bearbeiten",
             "labels": {
                 "fullName": "Vollständiger Name *",
+                "photo": "Foto-Link",
                 "country": "Land",
-                "elo": "ELO"
+                "elo": "POINTS"
             },
             "placeholders": {
                 "fullName": "z.B. Max Mustermann",

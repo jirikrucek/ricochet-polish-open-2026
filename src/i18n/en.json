@@ -30,8 +30,9 @@
         "searchPlaceholder": "Search...",
         "headers": {
             "fullName": "Full Name",
+            "photo": "PHOTO",
             "country": "Country",
-            "elo": "ELO"
+            "elo": "POINTS"
         },
         "empty": {
             "notFound": "No players found.",
@@ -42,8 +43,9 @@
             "editTitle": "Edit Player",
             "labels": {
                 "fullName": "Full Name *",
+                "photo": "Photo Link",
                 "country": "Country",
-                "elo": "ELO"
+                "elo": "POINTS"
             },
             "placeholders": {
                 "fullName": "e.g. John Doe",

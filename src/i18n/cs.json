@@ -30,8 +30,9 @@
         "searchPlaceholder": "Hledat...",
         "headers": {
             "fullName": "Jméno a příjmení",
+            "photo": "FOTO",
             "country": "Země",
-            "elo": "ELO"
+            "elo": "POINTS"
         },
         "empty": {
             "notFound": "Nebyli nalezeni žádní hráči.",
@@ -42,8 +43,9 @@
             "editTitle": "Upravit hráče",
             "labels": {
                 "fullName": "Jméno a příjmení *",
+                "photo": "Odkaz na fotografii",
                 "country": "Země",
-                "elo": "ELO"
+                "elo": "POINTS"
             },
             "placeholders": {
                 "fullName": "např. Jan Novák",
