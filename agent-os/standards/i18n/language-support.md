@@ -1,33 +1,46 @@
 # Language Support
 
-App supports 5 languages with Polish fallback.
+App supports 5 languages with **English fallback**.
 
 ## Supported Languages
 
 ```javascript
 resources: {
-    pl: { translation: pl },  // Polish (fallback)
-    en: { translation: en },  // English
-    nl: { translation: nl },  // Dutch
+    en: { translation: en },  // English (fallback)
+    cs: { translation: cs },  // Czech
     de: { translation: de },  // German
-    cs: { translation: cs }   // Czech
+    nl: { translation: nl },  // Dutch
+    pl: { translation: pl }   // Polish
 }
 ```
 
 ## Configuration
 
-- **Fallback:** `fallbackLng: 'pl'` — Polish is default if translation missing
+- **Fallback:** `fallbackLng: 'en'` — English is default for missing keys
 - **Detection:** Checks localStorage first, then browser language
 - **Persistence:** Language choice saved to localStorage
+
+## Why English?
+
+- Ensures international users see English (not Polish) as default
+- All languages fall back to English when a key is not found
+
+## Workflow for New Features
+
+**Always add English translations first** when adding new features:
+
+1. Add new keys to `en.json` first
+2. Other language translations can be added later
+3. Users will see English text until other translations are complete
 
 ## Language Files
 
 All translation files located in `src/i18n/`:
-- `pl.json`, `en.json`, `nl.json`, `de.json`, `cs.json`
+- `en.json`, `cs.json`, `de.json`, `nl.json`, `pl.json`
 
 **Import in config.js:**
 ```javascript
-import pl from './pl.json';
 import en from './en.json';
+import cs from './cs.json';
 // ... etc
 ```
